@@ -1,5 +1,5 @@
 import { INestApplication, Logger } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
+import { Test, TestingModuleBuilder } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { AppException } from '../src/common/errors/app-exception';
@@ -22,9 +22,17 @@ export const SEEDED_GTIN_COFFEE = '4012345000085';
  * `src/main.ts` installs — an e2e run that diverged from production wiring would
  * prove nothing.
  */
-export async function createTestApp(): Promise<INestApplication> {
+export async function createTestApp(
+  /**
+   * Optional graph surgery, e.g. `builder.overrideProvider(PRODUCT_PROVIDER)`. Used by
+   * the provider suite to inject a stub catalog provider — no e2e run ever performs a
+   * third-party network call.
+   */
+  configure?: (builder: TestingModuleBuilder) => TestingModuleBuilder,
+): Promise<INestApplication> {
   Logger.overrideLogger(['error']);
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+  const base = Test.createTestingModule({ imports: [AppModule] });
+  const moduleRef = await (configure ? configure(base) : base).compile();
   const app = moduleRef.createNestApplication();
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(

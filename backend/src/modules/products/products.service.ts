@@ -94,6 +94,8 @@ export class ProductsService {
     const known = await this.findByGtin(gtin);
     if (known) return this.cacheAndReturn(cacheKey, known);
 
+    // Checked AFTER the catalogue read on purpose: a barcode that was unknown a minute
+    // ago may have just been seeded, and a negative cache entry must never hide it.
     if (await this.cache.get<number>(missKey)) throw AppException.productNotFound({ gtin });
 
     const discovered = await this.lookup(gtin, ctx);

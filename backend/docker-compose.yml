@@ -1,0 +1,42 @@
+name: preisora
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: preisora-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: preisora
+      POSTGRES_PASSWORD: preisora
+      POSTGRES_DB: preisora
+    ports:
+      - '5432:5432'
+    volumes:
+      - preisora-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # postgis:16-3.4 restarts its server once during first boot; `pg_isready`
+      # plus `--wait` is what makes an immediately-following `db:migrate` reliable.
+      test: ['CMD-SHELL', 'pg_isready -U preisora -d preisora']
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: preisora-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - preisora-redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 3s
+
+volumes:
+  preisora-pgdata:
+  preisora-redisdata:

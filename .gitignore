@@ -1,0 +1,29 @@
+# Node
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# api-contract build artifacts
+api-contract/dist/
+
+# iOS — the Xcode project is generated from ios/project.yml (ADR-0004)
+ios/*.xcodeproj
+ios/*.xcworkspace
+ios/DerivedData/
+ios/build/
+*.xcuserstate
+xcuserdata/
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/

@@ -1,0 +1,44 @@
+{
+  "$comment": "PREISORA flyer offer import — harvested 2026-08-30 from the retailers' own public offer pages (aldi-sued.de/de/angebote.html, norma-online.de/de/angebote/). Facts (product, price, validity) transcribed verbatim; source URLs retained per offer batch. GTINs deliberately absent — resolution happens in the matching stage with quantity verification.",
+  "schemaVersion": 1,
+  "batches": [
+    {
+      "retailerName": "ALDI SÜD",
+      "retailerSlug": "aldi-sued",
+      "countryCode": "DE",
+      "currencyCode": "EUR",
+      "sourceUrl": "https://www.aldi-sued.de/de/angebote.html",
+      "harvestedAt": "2026-08-30",
+      "pricingScope": "market",
+      "offers": [
+        { "name": "Chipsfrisch Hot Honey", "brand": "funny-frisch", "quantityText": "130 g", "priceMinor": 99, "validFrom": "2026-09-04" },
+        { "name": "Leerdammer Original XXL", "brand": "Leerdammer", "quantityText": "360 g", "priceMinor": 399, "validFrom": "2026-09-04" },
+        { "name": "Ferrero B-ready", "brand": "Ferrero", "quantityText": "132 g", "priceMinor": 189, "validFrom": "2026-09-04" },
+        { "name": "Gut Drei Eichen Kochschinken", "brand": "Gut Drei Eichen", "quantityText": "250 g", "priceMinor": 149, "validFrom": "2026-09-04" },
+        { "name": "Lotus Biscoff Creamy XXL", "brand": "Lotus", "quantityText": "500 g", "priceMinor": 329, "validFrom": "2026-09-04" },
+        { "name": "Kokett Toilettenpapier 4-lagig", "brand": "Kokett", "quantityText": "3000 Blatt", "priceMinor": 799, "validFrom": "2026-09-04" },
+        { "name": "Rio Mare Thunfischsalat Mexikanisch", "brand": "Rio Mare", "quantityText": "320 g", "priceMinor": 349, "validFrom": "2026-09-04" },
+        { "name": "Sheba Geflügel 32er-Pack", "brand": "Sheba", "quantityText": "2,72 kg", "priceMinor": 1379, "validFrom": "2026-09-04" },
+        { "name": "Nordsee Backfisch", "brand": "Nordsee", "quantityText": "310 g", "priceMinor": 379, "validFrom": "2026-09-04" },
+        { "name": "Golden Seafood Garnelen Sortiment XXL", "brand": "Golden Seafood", "quantityText": "400 g", "priceMinor": 599, "validFrom": "2026-09-04" },
+        { "name": "Rio d'Oro Orangennektar", "brand": "Rio d'Oro", "quantityText": "1,5 l", "priceMinor": 139, "oldPriceMinor": 169, "kind": "permanent_reduction" },
+        { "name": "Farmer Macadamia gesalzen", "brand": "Farmer", "quantityText": "125 g", "priceMinor": 299, "oldPriceMinor": 349, "kind": "permanent_reduction" },
+        { "name": "Farmer Naturals Walnusskerne", "brand": "Farmer", "quantityText": "200 g", "priceMinor": 249, "oldPriceMinor": 299, "kind": "permanent_reduction" },
+        { "name": "Farmer Naturals Paranusskerne", "brand": "Farmer", "quantityText": "200 g", "priceMinor": 319, "oldPriceMinor": 429, "kind": "permanent_reduction" }
+      ]
+    },
+    {
+      "retailerName": "NORMA",
+      "retailerSlug": "norma",
+      "countryCode": "DE",
+      "currencyCode": "EUR",
+      "sourceUrl": "https://www.norma-online.de/de/angebote/",
+      "harvestedAt": "2026-08-30",
+      "pricingScope": "market",
+      "offers": [
+        { "name": "Gouda XXL", "quantityText": "600 g", "priceMinor": 299, "validFrom": "2026-08-31" },
+        { "name": "Schlesische Wurst", "quantityText": "600 g", "priceMinor": 599, "validFrom": "2026-08-31" }
+      ]
+    }
+  ]
+}

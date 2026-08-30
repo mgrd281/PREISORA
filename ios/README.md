@@ -19,14 +19,27 @@ platform-neutral backend in [`../backend`](../backend), built to the contract in
 ## 1 · Two steps on a Mac (Xcode only — no Homebrew, no Docker)
 
 ```bash
-cd ios
-curl -L -o xcodegen.zip https://github.com/yonaskolb/XcodeGen/releases/latest/download/xcodegen.zip
-unzip -q xcodegen.zip && ./xcodegen/bin/xcodegen generate    # writes Preisora.xcodeproj
-open Preisora.xcodeproj                                      # select the Preisora scheme, ⌘R
+git clone https://github.com/mgrd281/PREISORA     # already cloned? cd PREISORA && git pull
+cd PREISORA/ios && ./bootstrap.sh                 # ⌘R in Xcode on an iPhone simulator
 ```
 
-*(If you do have Homebrew, `brew install xcodegen && xcodegen generate` is equivalent —
-ADR-0004 pins XcodeGen 2.x.)* `project.yml` is the source of truth; `Preisora.xcodeproj`
+`bootstrap.sh` fetches XcodeGen (or reuses one you already have), generates
+`Preisora.xcodeproj`, and opens it. It is safe to re-run from any state and never stops on
+a prompt. `./bootstrap.sh --no-open` generates without launching Xcode.
+
+<details>
+<summary>Manual equivalent, if you prefer</summary>
+
+```bash
+cd ios
+curl -L -o xcodegen.zip https://github.com/yonaskolb/XcodeGen/releases/latest/download/xcodegen.zip
+unzip -o -q xcodegen.zip && ./xcodegen/bin/xcodegen generate   # -o: overwrite, never prompt
+open Preisora.xcodeproj                                        # select the Preisora scheme, ⌘R
+```
+
+With Homebrew, `brew install xcodegen && xcodegen generate` is equivalent — ADR-0004 pins
+XcodeGen 2.x.
+</details> `project.yml` is the source of truth; `Preisora.xcodeproj`
 is generated and never committed. Re-run `xcodegen generate` after adding files or
 changing build settings.
 

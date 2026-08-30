@@ -59,11 +59,12 @@ npm run typegen   # -> backend/src/generated/api-types.ts
 ### iOS (on a Mac — Xcode only, no Homebrew or Docker required)
 
 ```bash
-cd ios
-curl -L -o xcodegen.zip https://github.com/yonaskolb/XcodeGen/releases/latest/download/xcodegen.zip
-unzip -q xcodegen.zip && ./xcodegen/bin/xcodegen generate
-open Preisora.xcodeproj        # ⌘R on an iPhone simulator
+git clone https://github.com/mgrd281/PREISORA    # already cloned? cd PREISORA && git pull
+cd PREISORA/ios && ./bootstrap.sh                # ⌘R in Xcode on an iPhone simulator
 ```
+
+`bootstrap.sh` fetches XcodeGen if needed, generates `Preisora.xcodeproj` and opens it —
+safe to re-run, never prompts.
 
 The app starts in **Demo Mode**, serving responses captured from the real backend below
 `APIClient` — so the whole scan → compare → map journey works with no server running.

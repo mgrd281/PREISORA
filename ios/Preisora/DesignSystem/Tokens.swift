@@ -116,6 +116,9 @@ enum Tokens {
         /// Reduce-motion-aware animation for a token duration.
         /// Returns `nil` when the system asks for reduced motion, which SwiftUI
         /// treats as "no animation".
+        /// `@MainActor` because it reads UIKit accessibility state; every call site
+        /// is a view body anyway.
+        @MainActor
         static func animation(_ duration: TimeInterval) -> Animation? {
             if UIAccessibility.isReduceMotionEnabled {
                 return nil

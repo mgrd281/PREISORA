@@ -1,0 +1,57 @@
+{
+  "sourceLanguage": "de",
+  "version": "1.0",
+  "strings": {
+    "CFBundleDisplayName": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PREISORA"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PREISORA"
+          }
+        }
+      }
+    },
+    "NSCameraUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PREISORA nutzt die Kamera ausschliesslich zum Scannen von Produkt-Barcodes, um Preise vergleichen zu koennen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PREISORA uses the camera solely to scan product barcodes so it can compare prices."
+          }
+        }
+      }
+    },
+    "NSLocationWhenInUseUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PREISORA nutzt deinen Standort, um Preise und Filialen in deiner Naehe zu finden. Ohne Standort zeigen wir eine Berliner Beispielumgebung."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PREISORA uses your location to find prices and stores near you. Without it we show a Berlin sample area."
+          }
+        }
+      }
+    }
+  }
+}

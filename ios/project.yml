@@ -61,8 +61,7 @@ targets:
           - de
           - en
         ITSAppUsesNonExemptEncryption: false
-        UILaunchScreen:
-          UIColorName: ""
+        UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft

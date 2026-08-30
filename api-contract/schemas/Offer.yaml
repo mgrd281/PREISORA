@@ -1,0 +1,117 @@
+title: Offer
+description: >-
+  The CURRENT price of a Product at a Store, or uniformly across a RetailerMarket when
+  `storeId` is `null` (market-wide uniform price). All intelligence fields (`isBest`,
+  `freshness`, `effectivePrice`) are computed server-side - clients never re-derive
+  them (constitution §22). Historical prices live in PriceObservation, served
+  aggregated via `GET /products/{productId}/price-history`.
+type: object
+required:
+  - id
+  - productId
+  - retailerMarketId
+  - storeId
+  - price
+  - unitPrice
+  - unitPriceQuantityText
+  - isBest
+  - freshness
+  - observedAt
+  - validFrom
+  - validUntil
+  - promotion
+  - effectivePrice
+  - store
+  - distanceMeters
+properties:
+  id:
+    type: string
+    format: uuid
+  productId:
+    type: string
+    format: uuid
+  retailerMarketId:
+    type: string
+    format: uuid
+    description: Market the price belongs to - pricing is always per-market (§25).
+  storeId:
+    type:
+      - string
+      - 'null'
+    format: uuid
+    description: >-
+      Store the price was observed at, or `null` for a market-wide uniform price.
+      A store-specific offer overrides a market-wide one for that store.
+  price:
+    $ref: ./Money.yaml
+    description: Listed shelf price before promotion adjustment.
+  unitPrice:
+    anyOf:
+      - $ref: ./Money.yaml
+      - type: 'null'
+    description: >-
+      Normalized price per base quantity (see `unitPriceQuantityText`), or `null` when
+      the pack size is unknown.
+  unitPriceQuantityText:
+    type:
+      - string
+      - 'null'
+    description: Base quantity the `unitPrice` refers to (e.g. "1 l", "1 kg"), or `null`.
+    examples:
+      - 1 l
+  isBest:
+    type: boolean
+    description: >-
+      Server-computed "best offer" marker within the requested radius and freshness
+      window (effective price, distance as tiebreak). At most one offer per response
+      carries `true`.
+  freshness:
+    type: string
+    enum:
+      - fresh
+      - aging
+      - stale
+    description: >-
+      Server-computed observation freshness class (default window 72h). Only `fresh`
+      offers count toward `NO_CURRENT_PRICES` / best-price evaluation.
+  observedAt:
+    type: string
+    format: date-time
+    description: RFC 3339 UTC timestamp of the most recent underlying observation.
+  validFrom:
+    type:
+      - string
+      - 'null'
+    format: date-time
+    description: Advertised validity start (RFC 3339 UTC), or `null`.
+  validUntil:
+    type:
+      - string
+      - 'null'
+    format: date-time
+    description: Advertised validity end (RFC 3339 UTC), or `null`.
+  promotion:
+    anyOf:
+      - $ref: ./Promotion.yaml
+      - type: 'null'
+    description: Active promotion applied to this offer, or `null`.
+  effectivePrice:
+    $ref: ./Money.yaml
+    description: >-
+      Server-computed promotion-adjusted price actually paid. Equals `price` when no
+      evaluable promotion applies.
+  store:
+    anyOf:
+      - $ref: ./Store.yaml
+      - type: 'null'
+    description: >-
+      Embedded Store when the offer is store-specific and the request carried a query
+      location; `null` for market-wide offers.
+  distanceMeters:
+    type:
+      - integer
+      - 'null'
+    minimum: 0
+    description: >-
+      Distance from the query location to the offer's store in integer meters, or
+      `null` for market-wide offers.

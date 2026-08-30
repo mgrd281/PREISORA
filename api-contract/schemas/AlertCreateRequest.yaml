@@ -1,0 +1,28 @@
+title: AlertCreateRequest
+description: >-
+  Creates a PriceAlert. The client sends its generic Location model (accuracy/city
+  context included when known); the server persists the anchoring GeoPoint on the
+  alert.
+type: object
+required:
+  - productId
+  - targetPrice
+  - location
+properties:
+  productId:
+    type: string
+    format: uuid
+  targetPrice:
+    $ref: ./Money.yaml
+  radiusMeters:
+    type: integer
+    minimum: 1
+    maximum: 50000
+    default: 5000
+    description: Evaluation radius in integer meters.
+  location:
+    $ref: ./Location.yaml
+    description: Anchor location the radius is evaluated around.
+  isActive:
+    type: boolean
+    default: true

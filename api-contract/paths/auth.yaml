@@ -1,0 +1,293 @@
+# Path items for the Auth tag. Referenced from ../openapi.yaml (ADR-0003).
+# Token exchange endpoints are anonymous; identity management requires a bearer token.
+
+anonymous:
+  post:
+    operationId: createAnonymousSession
+    tags:
+      - Auth
+    summary: Create an anonymous account and session
+    description: >-
+      The scan-before-signup funnel entry: creates a User with an `anonymous` identity
+      row and returns the same AuthTokens as email login. Email/Apple/Google become
+      LINKED identities later (`POST /auth/register` with this bearer token, or the
+      stubbed identity-linking operations) - `users.id` stays the one primary identity
+      (constitution §11). No request body.
+    x-preisora-status: implemented
+    responses:
+      '201':
+        description: Fresh anonymous account with tokens.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/AuthTokens.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+register:
+  post:
+    operationId: registerWithEmail
+    tags:
+      - Auth
+    summary: Register with email and password
+    description: >-
+      Creates an email identity. Called WITH a valid anonymous bearer token, it links
+      the email identity to that existing account (scans/favorites survive); without
+      one, it creates a fresh account. Passwords are stored as argon2 hashes.
+    x-preisora-status: implemented
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/RegisterRequest.yaml
+    responses:
+      '201':
+        description: Account created (or upgraded from anonymous); tokens issued.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/AuthTokens.yaml
+      '400':
+        description: >-
+          Invalid payload, or the email is already registered
+          (`code: VALIDATION_FAILED`; `messageKey: error.email_already_registered`
+          for the duplicate case - no separate conflict status, see CONVENTIONS.md).
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+login:
+  post:
+    operationId: loginWithEmail
+    tags:
+      - Auth
+    summary: Log in with email and password
+    x-preisora-status: implemented
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/LoginRequest.yaml
+    responses:
+      '200':
+        description: Credentials accepted; tokens issued.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/AuthTokens.yaml
+      '400':
+        description: 'Malformed payload (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        description: >-
+          Unknown email or wrong password (`code: UNAUTHORIZED`,
+          `messageKey: error.invalid_credentials`). Deliberately indistinguishable.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+refresh:
+  post:
+    operationId: refreshTokens
+    tags:
+      - Auth
+    summary: Exchange a refresh token for a new token pair
+    description: >-
+      Refresh tokens are single-use and rotated: the presented token is invalidated
+      and a new pair is issued. Anonymous endpoint - the refresh token itself is the
+      credential.
+    x-preisora-status: implemented
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/RefreshRequest.yaml
+    responses:
+      '200':
+        description: New token pair; the old refresh token is now invalid.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/AuthTokens.yaml
+      '400':
+        description: 'Malformed payload (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        description: >-
+          Refresh token unknown, expired, or already rotated (`code: UNAUTHORIZED`).
+          The client must re-authenticate.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+oauth:
+  post:
+    operationId: exchangeOAuthToken
+    tags:
+      - Auth
+    summary: 'STUBBED: Sign in with Apple / Google'
+    description: >-
+      Exchanges a provider ID token for PREISORA tokens, creating or resolving the
+      linked identity. FULLY SPECIFIED BUT STUBBED - currently ALWAYS answers
+      501 `FEATURE_NOT_AVAILABLE`; the shapes below are final so clients integrate
+      today (ADR-0003).
+    x-preisora-status: stubbed
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/OAuthExchangeRequest.yaml
+    responses:
+      '200':
+        description: (When implemented) provider token verified; PREISORA tokens issued.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/AuthTokens.yaml
+      '400':
+        description: 'Malformed payload (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        description: '(When implemented) the provider ID token failed verification (`code: UNAUTHORIZED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+      '501':
+        $ref: ../responses/NotImplemented.yaml
+
+identities:
+  get:
+    operationId: listIdentities
+    tags:
+      - Auth
+    summary: 'STUBBED: List the linked sign-in methods of the current account'
+    description: >-
+      FULLY SPECIFIED BUT STUBBED - currently always answers 501
+      `FEATURE_NOT_AVAILABLE` (shapes final, ADR-0003).
+    x-preisora-status: stubbed
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: (When implemented) all identities linked to the account.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/UserIdentityPage.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+      '501':
+        $ref: ../responses/NotImplemented.yaml
+  post:
+    operationId: linkIdentity
+    tags:
+      - Auth
+    summary: 'STUBBED: Link an additional sign-in method'
+    description: >-
+      FULLY SPECIFIED BUT STUBBED - currently always answers 501
+      `FEATURE_NOT_AVAILABLE` (shapes final, ADR-0003).
+    x-preisora-status: stubbed
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/IdentityLinkRequest.yaml
+    responses:
+      '201':
+        description: (When implemented) identity linked.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/UserIdentity.yaml
+      '400':
+        description: >-
+          (When implemented) invalid payload, provider/credential mismatch, or the
+          identity is already linked to another account (`code: VALIDATION_FAILED`).
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+      '501':
+        $ref: ../responses/NotImplemented.yaml
+
+identityById:
+  parameters:
+    - name: identityId
+      in: path
+      required: true
+      description: UserIdentity UUID.
+      schema:
+        type: string
+        format: uuid
+  delete:
+    operationId: unlinkIdentity
+    tags:
+      - Auth
+    summary: 'STUBBED: Unlink a sign-in method'
+    description: >-
+      FULLY SPECIFIED BUT STUBBED - currently always answers 501
+      `FEATURE_NOT_AVAILABLE`. (When implemented) removing the LAST identity of an
+      account is rejected with 400.
+    x-preisora-status: stubbed
+    security:
+      - bearerAuth: []
+    responses:
+      '204':
+        description: (When implemented) identity unlinked.
+      '400':
+        description: >-
+          (When implemented) refusing to remove the account's last sign-in method
+          (`code: VALIDATION_FAILED`, `messageKey: error.last_identity_not_removable`).
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '404':
+        description: >-
+          (When implemented) no such identity on this account
+          (`code: RESOURCE_NOT_FOUND`, `messageKey: error.identity_not_found` -
+          CONVENTIONS.md "Resource 404s").
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+      '501':
+        $ref: ../responses/NotImplemented.yaml

@@ -1,0 +1,248 @@
+# Path items for the Products and Offers tags (offers/price-history live under
+# /products/{productId}/... so they are folded into this file).
+# Referenced from ../openapi.yaml (ADR-0003).
+
+byId:
+  parameters:
+    - name: productId
+      in: path
+      required: true
+      description: Canonical product UUID (constitution §20).
+      schema:
+        type: string
+        format: uuid
+  get:
+    operationId: getProductById
+    tags:
+      - Products
+    summary: Get a product by its canonical UUID
+    description: >-
+      Resolves the permanent canonical identifier. The deep link
+      `https://preisora.de/product/{productId}` maps 1:1 to this operation
+      (docs/deep-links.md).
+    x-preisora-status: implemented
+    responses:
+      '200':
+        description: The product.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Product.yaml
+            examples:
+              product:
+                $ref: ../examples/product.yaml
+      '400':
+        description: '`productId` is not a well-formed UUID (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '404':
+        description: 'No product with this id (`code: PRODUCT_NOT_FOUND`, `messageKey: error.product_not_found`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+byGtin:
+  parameters:
+    - name: gtin
+      in: path
+      required: true
+      description: >-
+        GTIN as scanned (EAN-8 / UPC-A / EAN-13 / GTIN-14). A string - leading zeros
+        are preserved. Checksum-validated server-side before any lookup.
+      schema:
+        type: string
+        pattern: '^\d{8}$|^\d{12,14}$'
+  get:
+    operationId: getProductByGtin
+    tags:
+      - Products
+    summary: Resolve a scanned barcode (GTIN) to a product
+    description: >-
+      The barcode-scan entry point of the core funnel (scan -> product -> offers).
+      Backed by a short-TTL read-through cache. Invalid shape or checksum fails BEFORE
+      any database hit with 400 `INVALID_GTIN`.
+    x-preisora-status: implemented
+    responses:
+      '200':
+        description: The product for this GTIN.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Product.yaml
+            examples:
+              product:
+                $ref: ../examples/product.yaml
+      '400':
+        description: >-
+          The GTIN is malformed or fails checksum validation (`code: INVALID_GTIN`,
+          `messageKey: error.invalid_gtin`).
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '404':
+        description: 'Valid GTIN, but no product known for it (`code: PRODUCT_NOT_FOUND`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+bySlug:
+  parameters:
+    - name: slug
+      in: path
+      required: true
+      description: Canonical product slug (the `https://preisora.de/p/{slug}` deep link).
+      schema:
+        type: string
+        pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+  get:
+    operationId: getProductBySlug
+    tags:
+      - Products
+    summary: Get a product by its canonical slug
+    x-preisora-status: implemented
+    responses:
+      '200':
+        description: The product.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Product.yaml
+      '400':
+        description: 'The slug is not a well-formed slug (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '404':
+        description: 'No product with this slug (`code: PRODUCT_NOT_FOUND`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+offers:
+  parameters:
+    - name: productId
+      in: path
+      required: true
+      description: Canonical product UUID.
+      schema:
+        type: string
+        format: uuid
+  get:
+    operationId: listProductOffers
+    tags:
+      - Offers
+    summary: Current cross-retailer offers for a product, geo-ranked
+    description: >-
+      The price-comparison core. Returns CURRENT offers within `radiusMeters` of the
+      query location, ranked server-side (effective price, then distance), with
+      `isBest`, `freshness` and promotion-adjusted `effectivePrice` computed by the
+      backend - clients never re-derive intelligence (constitution §22). Market-wide
+      uniform prices appear with `storeId: null`; store-specific offers override them.
+      Radius-bounded and capped at 50 - the Page envelope always carries
+      `nextCursor: null` today (ADR-0002). Canonical noun is OFFER: the constitution's
+      `/prices` sample is illustrative only (see CONVENTIONS.md "Naming").
+    x-preisora-status: implemented
+    parameters:
+      - $ref: ../parameters/Lat.yaml
+      - $ref: ../parameters/Lng.yaml
+      - $ref: ../parameters/RadiusMeters.yaml
+    responses:
+      '200':
+        description: Fresh offers within the radius, best first.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/OfferPage.yaml
+            examples:
+              offers:
+                $ref: ../examples/offer-page.yaml
+      '400':
+        description: >-
+          `lat`/`lng` missing (`code: LOCATION_REQUIRED`,
+          `messageKey: error.location_required`), or a parameter is out of range
+          (`code: VALIDATION_FAILED`).
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '404':
+        description: >-
+          Two deliberate conditions share this status (CONVENTIONS.md
+          "NO_CURRENT_PRICES as 404"): the product id is unknown
+          (`code: PRODUCT_NOT_FOUND`), or the product exists but ZERO offers within
+          the radius pass the freshness window (`code: NO_CURRENT_PRICES`,
+          `messageKey: error.no_current_prices`).
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+            examples:
+              noCurrentPrices:
+                $ref: ../examples/error-no-current-prices.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+priceHistory:
+  parameters:
+    - name: productId
+      in: path
+      required: true
+      description: Canonical product UUID.
+      schema:
+        type: string
+        format: uuid
+  get:
+    operationId: getProductPriceHistory
+    tags:
+      - Offers
+    summary: Daily min/avg price history for a product
+    description: >-
+      Server-side aggregation over append-only price observations. Amounts are integer
+      minor units - never floats (§24). Gate the UI on the `priceHistory` capability.
+    x-preisora-status: implemented
+    parameters:
+      - name: range
+        in: query
+        required: false
+        description: Aggregation window.
+        schema:
+          type: string
+          enum:
+            - 7d
+            - 30d
+            - 90d
+          default: 30d
+    responses:
+      '200':
+        description: Daily aggregates, ascending by date. Empty `points` when no observations exist in range.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/PriceHistory.yaml
+      '400':
+        description: 'Invalid `range` or malformed `productId` (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '404':
+        description: 'No product with this id (`code: PRODUCT_NOT_FOUND`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml

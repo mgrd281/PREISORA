@@ -1,0 +1,12 @@
+summary: 'NO_CURRENT_PRICES: product exists, zero fresh offers in radius'
+description: >-
+  The deliberate 404 on the offers endpoint when the product resolves but no offer
+  within the radius passes the freshness window (see CONVENTIONS.md - revisitable).
+value:
+  code: NO_CURRENT_PRICES
+  messageKey: error.no_current_prices
+  details:
+    productId: 3fa2d1b8-5c44-4a7e-9b0e-6f2a91c47d55
+    radiusMeters: 5000
+    freshnessWindowHours: 72
+  retryable: false

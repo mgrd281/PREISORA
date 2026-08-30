@@ -1,0 +1,15 @@
+title: UserIdentityPage
+description: >-
+  Page envelope of UserIdentities (ADR-0002). A user has at most a handful of
+  identities; always returned whole with `nextCursor: null`, `hasMore: false`.
+type: object
+required:
+  - data
+  - pageInfo
+properties:
+  data:
+    type: array
+    items:
+      $ref: ./UserIdentity.yaml
+  pageInfo:
+    $ref: ./PageInfo.yaml

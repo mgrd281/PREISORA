@@ -1,0 +1,14 @@
+title: AlertUpdateRequest
+description: Partial update of a PriceAlert. Omitted fields stay unchanged.
+type: object
+properties:
+  targetPrice:
+    $ref: ./Money.yaml
+  radiusMeters:
+    type: integer
+    minimum: 1
+    maximum: 50000
+  location:
+    $ref: ./Location.yaml
+  isActive:
+    type: boolean

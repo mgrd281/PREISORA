@@ -1,0 +1,22 @@
+title: Money
+description: >-
+  An exact monetary amount. `amountMinor` is the integer amount in the currency's
+  minor unit (euro cents for EUR). Monetary values are NEVER floats anywhere on the
+  wire, and currency is never an implicit EUR (constitution §24).
+type: object
+required:
+  - amountMinor
+  - currencyCode
+properties:
+  amountMinor:
+    type: integer
+    format: int64
+    description: Amount in the currency's minor unit (e.g. cents).
+    examples:
+      - 179
+  currencyCode:
+    type: string
+    pattern: '^[A-Z]{3}$'
+    description: ISO-4217 alphabetic currency code.
+    examples:
+      - EUR

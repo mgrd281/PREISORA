@@ -1,0 +1,42 @@
+# Path items for the Search tag. Referenced from ../openapi.yaml (ADR-0003).
+
+products:
+  get:
+    operationId: searchProducts
+    tags:
+      - Search
+    summary: Search products by name/brand
+    description: >-
+      Text search over the product catalog with REAL cursor pagination from day 1 - an
+      opaque base64url `(name, id)` composite cursor (ADR-0002). Follow
+      `pageInfo.nextCursor` while `hasMore` is `true`. Phase-1 backend implementation
+      is trigram ILIKE; the contract is engine-agnostic.
+    x-preisora-status: implemented
+    parameters:
+      - name: q
+        in: query
+        required: true
+        description: Search query (product name, brand).
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 200
+      - $ref: ../parameters/Cursor.yaml
+      - $ref: ../parameters/Limit.yaml
+    responses:
+      '200':
+        description: Matching products, best match first.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/ProductPage.yaml
+      '400':
+        description: >-
+          Missing/empty `q`, out-of-range `limit`, or a malformed/expired `cursor`
+          (`code: VALIDATION_FAILED`).
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml

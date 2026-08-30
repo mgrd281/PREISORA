@@ -1,0 +1,15 @@
+title: ShoppingListPage
+description: >-
+  Page envelope of ShoppingLists (ADR-0002). Per-user list sets are small; v1 returns
+  them whole with `nextCursor: null`, `hasMore: false`.
+type: object
+required:
+  - data
+  - pageInfo
+properties:
+  data:
+    type: array
+    items:
+      $ref: ./ShoppingList.yaml
+  pageInfo:
+    $ref: ./PageInfo.yaml

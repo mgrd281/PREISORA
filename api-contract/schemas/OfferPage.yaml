@@ -1,0 +1,17 @@
+title: OfferPage
+description: >-
+  Page envelope of Offers (ADR-0002). Geo-ordered and radius-bounded: capped at 50
+  results, always `nextCursor: null`, `hasMore: false` in v1 - a `(distanceMeters, id)`
+  composite cursor is designed and lands additively when data volume demands it.
+type: object
+required:
+  - data
+  - pageInfo
+properties:
+  data:
+    type: array
+    maxItems: 50
+    items:
+      $ref: ./Offer.yaml
+  pageInfo:
+    $ref: ./PageInfo.yaml

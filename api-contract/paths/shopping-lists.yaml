@@ -1,0 +1,352 @@
+# Path items for the Shopping Lists tag. Referenced from ../openapi.yaml (ADR-0003).
+# All operations require a bearer token.
+
+collection:
+  get:
+    operationId: listShoppingLists
+    tags:
+      - Shopping Lists
+    summary: List the account's shopping lists
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: All lists of the account, items embedded, most recently updated first.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/ShoppingListPage.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+  post:
+    operationId: createShoppingList
+    tags:
+      - Shopping Lists
+    summary: Create a shopping list
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    parameters:
+      - $ref: ../parameters/IdempotencyKey.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/ShoppingListCreateRequest.yaml
+    responses:
+      '201':
+        description: List created (empty).
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/ShoppingList.yaml
+      '400':
+        description: 'Invalid payload (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+byId:
+  parameters:
+    - name: listId
+      in: path
+      required: true
+      description: ShoppingList UUID (must belong to the authenticated account).
+      schema:
+        type: string
+        format: uuid
+  get:
+    operationId: getShoppingListById
+    tags:
+      - Shopping Lists
+    summary: Get a shopping list
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: The list with its items.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/ShoppingList.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '404':
+        description: >-
+          No such list on this account (`code: RESOURCE_NOT_FOUND`,
+          `messageKey: error.shopping_list_not_found` - CONVENTIONS.md
+          "Resource 404s").
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+  patch:
+    operationId: updateShoppingList
+    tags:
+      - Shopping Lists
+    summary: Rename a shopping list
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/ShoppingListUpdateRequest.yaml
+    responses:
+      '200':
+        description: The updated list.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/ShoppingList.yaml
+      '400':
+        description: 'Invalid payload (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '404':
+        description: 'No such list on this account (`code: RESOURCE_NOT_FOUND`, `messageKey: error.shopping_list_not_found`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+  delete:
+    operationId: deleteShoppingList
+    tags:
+      - Shopping Lists
+    summary: Delete a shopping list
+    description: Deletes the list and its items. Idempotent - deleting an absent list answers 204 as well.
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    responses:
+      '204':
+        description: List gone (deleted now or already absent).
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+items:
+  parameters:
+    - name: listId
+      in: path
+      required: true
+      description: ShoppingList UUID (must belong to the authenticated account).
+      schema:
+        type: string
+        format: uuid
+  post:
+    operationId: addShoppingListItem
+    tags:
+      - Shopping Lists
+    summary: Add a product to a shopping list
+    description: >-
+      Adding a product already on the list increments nothing and creates no
+      duplicate - the existing item is returned with 200 (natural-key idempotency on
+      (list, product); adjust quantity via PATCH).
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    parameters:
+      - $ref: ../parameters/IdempotencyKey.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/ShoppingListItemCreateRequest.yaml
+    responses:
+      '200':
+        description: The product was already on the list - the existing item.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/ShoppingListItem.yaml
+      '201':
+        description: Item added.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/ShoppingListItem.yaml
+      '400':
+        description: 'Invalid payload (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '404':
+        description: >-
+          Two distinct conditions share this status: the list does not exist on this
+          account (`code: RESOURCE_NOT_FOUND`,
+          `messageKey: error.shopping_list_not_found`), or the referenced product is
+          unknown (`code: PRODUCT_NOT_FOUND`, `messageKey: error.product_not_found`)
+          - CONVENTIONS.md "Resource 404s".
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+itemById:
+  parameters:
+    - name: listId
+      in: path
+      required: true
+      description: ShoppingList UUID (must belong to the authenticated account).
+      schema:
+        type: string
+        format: uuid
+    - name: itemId
+      in: path
+      required: true
+      description: ShoppingListItem UUID.
+      schema:
+        type: string
+        format: uuid
+  patch:
+    operationId: updateShoppingListItem
+    tags:
+      - Shopping Lists
+    summary: Update a shopping list item
+    description: Partial update of quantity and note.
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/ShoppingListItemUpdateRequest.yaml
+    responses:
+      '200':
+        description: The updated item.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/ShoppingListItem.yaml
+      '400':
+        description: 'Invalid payload (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '404':
+        description: >-
+          List or item not found on this account (`code: RESOURCE_NOT_FOUND`,
+          `messageKey: error.shopping_list_not_found` or
+          `error.shopping_list_item_not_found` - CONVENTIONS.md "Resource 404s").
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+  delete:
+    operationId: removeShoppingListItem
+    tags:
+      - Shopping Lists
+    summary: Remove an item from a shopping list
+    description: >-
+      Idempotent for the ITEM - removing an absent item answers 204. An unknown LIST
+      still answers 404.
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    responses:
+      '204':
+        description: Item gone (removed now or already absent).
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '404':
+        description: 'The list does not exist on this account (`code: RESOURCE_NOT_FOUND`, `messageKey: error.shopping_list_not_found`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+optimize:
+  parameters:
+    - name: listId
+      in: path
+      required: true
+      description: ShoppingList UUID (must belong to the authenticated account).
+      schema:
+        type: string
+        format: uuid
+  post:
+    operationId: optimizeShoppingList
+    tags:
+      - Shopping Lists
+    summary: Optimize where to buy a shopping list
+    description: >-
+      Runs the server-side shopping optimizer (constitution §23) over fresh offers in
+      stores within `radiusMeters` of the given location. Strategies:
+      `cheapest_total` (minimal total, at most 3 stores) and `fewest_stores` (best
+      single store) are implemented; `balanced` is part of the canonical enum but NOT
+      YET IMPLEMENTED - requesting it answers 501 `FEATURE_NOT_AVAILABLE` at runtime.
+      No side effects; safe to re-run. Gate the UI on the `shoppingOptimizer`
+      capability.
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/OptimizeRequest.yaml
+    responses:
+      '200':
+        description: The optimization result. Items no fresh offer could satisfy are in `unavailableItems`.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/OptimizationResult.yaml
+      '400':
+        description: >-
+          Location missing (`code: LOCATION_REQUIRED`), or invalid payload / empty
+          list (`code: VALIDATION_FAILED`).
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '404':
+        description: 'No such list on this account (`code: RESOURCE_NOT_FOUND`, `messageKey: error.shopping_list_not_found`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+      '501':
+        $ref: ../responses/NotImplemented.yaml

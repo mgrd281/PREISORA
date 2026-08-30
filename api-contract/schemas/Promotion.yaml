@@ -1,0 +1,54 @@
+title: Promotion
+description: >-
+  A time-bounded price modifier attached to an Offer. Eligibility and price effects are
+  decided server-side (constitution §22) - clients render, never re-derive.
+  `multibuy` and `loyalty` promotions are stored and surfaced but not yet folded into
+  `effectivePrice` (backend phase 1 evaluates `percentage` and `absolute` only).
+type: object
+required:
+  - id
+  - type
+  - percentOff
+  - amountOff
+  - requiresLoyaltyCard
+  - startsAt
+  - endsAt
+properties:
+  id:
+    type: string
+    format: uuid
+  type:
+    type: string
+    enum:
+      - percentage
+      - absolute
+      - multibuy
+      - loyalty
+    description: Promotion mechanics class.
+  percentOff:
+    type:
+      - integer
+      - 'null'
+    minimum: 1
+    maximum: 100
+    description: Percent discount (set when `type` is `percentage`, otherwise `null`).
+  amountOff:
+    anyOf:
+      - $ref: ./Money.yaml
+      - type: 'null'
+    description: Absolute discount (set when `type` is `absolute`, otherwise `null`).
+  requiresLoyaltyCard:
+    type: boolean
+    description: Whether the promotion requires the retailer's loyalty program.
+  startsAt:
+    type:
+      - string
+      - 'null'
+    format: date-time
+    description: RFC 3339 UTC start of validity, or `null` when open-ended.
+  endsAt:
+    type:
+      - string
+      - 'null'
+    format: date-time
+    description: RFC 3339 UTC end of validity, or `null` when open-ended.

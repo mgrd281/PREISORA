@@ -1,0 +1,118 @@
+# Path items for the Users tag. Referenced from ../openapi.yaml (ADR-0003).
+# All operations require a bearer token (anonymous accounts included).
+
+me:
+  get:
+    operationId: getCurrentUser
+    tags:
+      - Users
+    summary: Get the current account
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: The account the bearer token resolves to.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/User.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+  patch:
+    operationId: updateCurrentUser
+    tags:
+      - Users
+    summary: Update the current account
+    description: Partial update - omitted fields stay unchanged. Email changes go through identity linking, not this operation.
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/UserUpdateRequest.yaml
+    responses:
+      '200':
+        description: The updated account.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/User.yaml
+      '400':
+        description: 'Invalid payload (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+preferences:
+  get:
+    operationId: getUserPreferences
+    tags:
+      - Users
+    summary: 'STUBBED: Get cross-device preferences'
+    description: >-
+      Constitution §12 sync seam. FULLY SPECIFIED BUT STUBBED - currently always
+      answers 501 `FEATURE_NOT_AVAILABLE`; the UserPreferences shape is final
+      (ADR-0003).
+    x-preisora-status: stubbed
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: (When implemented) the account's preferences.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/UserPreferences.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+      '501':
+        $ref: ../responses/NotImplemented.yaml
+  patch:
+    operationId: updateUserPreferences
+    tags:
+      - Users
+    summary: 'STUBBED: Update cross-device preferences'
+    description: >-
+      FULLY SPECIFIED BUT STUBBED - currently always answers 501
+      `FEATURE_NOT_AVAILABLE` (shape final, ADR-0003). Partial update.
+    x-preisora-status: stubbed
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/UserPreferencesUpdateRequest.yaml
+    responses:
+      '200':
+        description: (When implemented) the updated preferences.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/UserPreferences.yaml
+      '400':
+        description: 'Invalid payload (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+      '501':
+        $ref: ../responses/NotImplemented.yaml

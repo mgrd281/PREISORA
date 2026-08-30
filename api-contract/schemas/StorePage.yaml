@@ -1,0 +1,17 @@
+title: StorePage
+description: >-
+  Page envelope of Stores (ADR-0002). Geo-ordered and radius-bounded: capped at 50
+  results, always `nextCursor: null`, `hasMore: false` in v1 - geo cursoring lands
+  additively later.
+type: object
+required:
+  - data
+  - pageInfo
+properties:
+  data:
+    type: array
+    maxItems: 50
+    items:
+      $ref: ./Store.yaml
+  pageInfo:
+    $ref: ./PageInfo.yaml

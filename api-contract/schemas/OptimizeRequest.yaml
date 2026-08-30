@@ -1,0 +1,36 @@
+title: OptimizeRequest
+description: >-
+  Input for the shopping optimizer. Candidate stores are drawn from the radius around
+  the given coordinate. `lat`/`lng` are required - the runtime rejection for callers
+  omitting them is 400 `LOCATION_REQUIRED`.
+type: object
+required:
+  - lat
+  - lng
+properties:
+  strategy:
+    type: string
+    enum:
+      - cheapest_total
+      - fewest_stores
+      - balanced
+    default: cheapest_total
+    description: >-
+      Optimization strategy (canonical wire enum). `cheapest_total` minimizes the
+      total across at most 3 stores; `fewest_stores` picks the best single store;
+      `balanced` is specified but not yet implemented - requesting it returns
+      501 `FEATURE_NOT_AVAILABLE`.
+  lat:
+    type: number
+    minimum: -90
+    maximum: 90
+  lng:
+    type: number
+    minimum: -180
+    maximum: 180
+  radiusMeters:
+    type: integer
+    minimum: 1
+    maximum: 50000
+    default: 5000
+    description: Store search radius in integer meters.

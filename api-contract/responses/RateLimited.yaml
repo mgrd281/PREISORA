@@ -1,0 +1,26 @@
+description: >-
+  Request quota exceeded (`code: RATE_LIMITED`, `retryable: true`). Rate limiting is
+  enforced globally; the `RateLimit-*` headers describe the current window. Back off
+  until `RateLimit-Reset` seconds have passed.
+headers:
+  RateLimit-Limit:
+    description: Total requests permitted in the current window.
+    schema:
+      type: integer
+  RateLimit-Remaining:
+    description: Requests remaining in the current window.
+    schema:
+      type: integer
+  RateLimit-Reset:
+    description: Seconds until the current window resets.
+    schema:
+      type: integer
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/Error.yaml
+    example:
+      code: RATE_LIMITED
+      messageKey: error.rate_limited
+      details: null
+      retryable: true

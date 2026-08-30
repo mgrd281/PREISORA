@@ -1,0 +1,153 @@
+openapi: 3.1.0
+
+info:
+  title: PREISORA API
+  version: 1.0.0
+  summary: Platform-neutral price-intelligence API for the PREISORA apps.
+  description: |
+    The canonical, design-first contract of the PREISORA platform (ADR-0003): barcode
+    scan -> product -> cross-retailer price comparison, favorites, price alerts,
+    shopping lists, and the shopping optimizer. One intelligence platform, multiple
+    native experiences - iOS today, Android later, both consuming exactly this
+    contract.
+
+    This hand-written, split-file spec is THE source of truth. Implementations
+    conform to it, never the other way around. Redocly bundles it to
+    `dist/openapi.bundled.{yaml,json}`; `openapi-typescript` generates the backend's
+    `api-types.ts` from the bundle; `swift-openapi-generator` over the same bundle is
+    the documented iOS path.
+
+    Cross-cutting rules live in `CONVENTIONS.md` next to this file - units (geo in
+    integer meters, money in integer minor units), cursor pagination (ADR-0002),
+    localization precedence, idempotency, error conventions, and the additive-only
+    evolution policy.
+
+    Every operation carries `x-preisora-status`:
+    - `implemented` - live in the phase-1 backend.
+    - `stubbed` - fully schema-specified, currently answers 501 `FEATURE_NOT_AVAILABLE`.
+    - `planned` - reserved shape, not yet served (used on the `Idempotency-Key` header).
+  license:
+    name: Proprietary
+    url: https://preisora.de/legal/api-license
+  x-preisora-error-catalog: docs/domain-glossary.md
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development (backend/ docker-compose stack).
+  - url: https://api.preisora.de/api/v1
+    description: Production (placeholder - domain not yet live).
+
+# Public catalog reads are anonymous by default; user-scoped operations override
+# this with bearerAuth (see CONVENTIONS.md "Security model").
+security: []
+
+tags:
+  - name: Health
+    description: Liveness/readiness probing.
+  - name: Products
+    description: Canonical product lookups - by UUID, by scanned GTIN, by slug.
+  - name: Offers
+    description: >-
+      Current cross-retailer prices for a product and aggregated price history. All
+      price intelligence (best offer, freshness, effective price) is server-computed.
+  - name: Stores
+    description: Physical store locations, geo-queried by radius.
+  - name: Retailers
+    description: Retail chains and their per-country markets.
+  - name: Search
+    description: Product text search with real cursor pagination.
+  - name: Auth
+    description: >-
+      Anonymous-first authentication (constitution §11): anonymous session, email
+      register/login, token refresh, and the stubbed OAuth/identity-linking surface.
+  - name: Users
+    description: The current account and its (stubbed) cross-device preferences.
+  - name: Devices
+    description: Device registration for push delivery.
+  - name: Favorites
+    description: Product bookmarks, natural-key idempotent.
+  - name: Alerts
+    description: Price alerts evaluated by the one backend alert engine.
+  - name: Shopping Lists
+    description: Shopping lists, their items, and the server-side shopping optimizer.
+  - name: Capabilities
+    description: Backend-declared feature availability per country/platform/version/cohort.
+
+paths:
+  /health:
+    $ref: ./paths/health.yaml#/health
+  /products/{productId}:
+    $ref: ./paths/products.yaml#/byId
+  /products/by-gtin/{gtin}:
+    $ref: ./paths/products.yaml#/byGtin
+  /products/by-slug/{slug}:
+    $ref: ./paths/products.yaml#/bySlug
+  /products/{productId}/offers:
+    $ref: ./paths/products.yaml#/offers
+  /products/{productId}/price-history:
+    $ref: ./paths/products.yaml#/priceHistory
+  /stores:
+    $ref: ./paths/stores.yaml#/collection
+  /stores/{storeId}:
+    $ref: ./paths/stores.yaml#/byId
+  /retailers:
+    $ref: ./paths/retailers.yaml#/collection
+  /retailers/{retailerId}:
+    $ref: ./paths/retailers.yaml#/byId
+  /search/products:
+    $ref: ./paths/search.yaml#/products
+  /auth/anonymous:
+    $ref: ./paths/auth.yaml#/anonymous
+  /auth/register:
+    $ref: ./paths/auth.yaml#/register
+  /auth/login:
+    $ref: ./paths/auth.yaml#/login
+  /auth/refresh:
+    $ref: ./paths/auth.yaml#/refresh
+  /auth/oauth:
+    $ref: ./paths/auth.yaml#/oauth
+  /auth/identities:
+    $ref: ./paths/auth.yaml#/identities
+  /auth/identities/{identityId}:
+    $ref: ./paths/auth.yaml#/identityById
+  /users/me:
+    $ref: ./paths/users.yaml#/me
+  /users/me/preferences:
+    $ref: ./paths/users.yaml#/preferences
+  /devices:
+    $ref: ./paths/devices.yaml#/collection
+  /devices/{deviceId}:
+    $ref: ./paths/devices.yaml#/byId
+  /favorites:
+    $ref: ./paths/favorites.yaml#/collection
+  /favorites/{productId}:
+    $ref: ./paths/favorites.yaml#/byProductId
+  /alerts:
+    $ref: ./paths/alerts.yaml#/collection
+  /alerts/{alertId}:
+    $ref: ./paths/alerts.yaml#/byId
+  /shopping-lists:
+    $ref: ./paths/shopping-lists.yaml#/collection
+  /shopping-lists/{listId}:
+    $ref: ./paths/shopping-lists.yaml#/byId
+  /shopping-lists/{listId}/items:
+    $ref: ./paths/shopping-lists.yaml#/items
+  /shopping-lists/{listId}/items/{itemId}:
+    $ref: ./paths/shopping-lists.yaml#/itemById
+  /shopping-lists/{listId}/optimize:
+    $ref: ./paths/shopping-lists.yaml#/optimize
+  /capabilities:
+    $ref: ./paths/capabilities.yaml#/root
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >-
+        Short-lived JWT access token from any Auth token operation (anonymous
+        sessions included - the scan-before-signup funnel authenticates the same
+        way). Send as `Authorization: Bearer <accessToken>`; refresh via
+        `POST /auth/refresh`. Failures answer 401 with the standard Error envelope
+        (`code: UNAUTHORIZED`).

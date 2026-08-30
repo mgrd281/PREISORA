@@ -1,0 +1,74 @@
+title: Product
+description: >-
+  A purchasable item with a permanent canonical identity: internal UUID, GTIN, and slug
+  (constitution §20). Public identifiers are never platform-local database keys. The
+  deep link `https://preisora.de/product/{id}` resolves via `GET /products/{productId}`.
+type: object
+required:
+  - id
+  - gtin
+  - slug
+  - name
+  - brand
+  - quantityText
+  - images
+  - countryCode
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: Permanent canonical product UUID.
+  gtin:
+    type: string
+    pattern: '^\d{8}$|^\d{12,14}$'
+    description: >-
+      Global Trade Item Number (EAN-8 / UPC-A / EAN-13 / GTIN-14). Always a string -
+      leading zeros are preserved. Checksum-validated by the backend.
+    examples:
+      - '4012345678901'
+  slug:
+    type: string
+    pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+    description: Canonical URL slug, resolvable via `GET /products/by-slug/{slug}`.
+    examples:
+      - vollmilch-3-5-1l
+  name:
+    type: string
+    description: Canonical product name.
+    examples:
+      - Vollmilch 3,5%
+  brand:
+    type:
+      - string
+      - 'null'
+    description: Brand name, or `null` when unbranded/unknown.
+  quantityText:
+    type:
+      - string
+      - 'null'
+    description: Human-readable pack size (e.g. "1 L", "250 g"), or `null` when unknown.
+    examples:
+      - 1 L
+  images:
+    type:
+      - array
+      - 'null'
+    items:
+      $ref: ./ImageAsset.yaml
+    description: >-
+      Image renditions, or `null` when no imagery is available yet (constitution §34
+      seam - seed data may leave this empty).
+  countryCode:
+    type: string
+    pattern: '^[A-Z]{2}$'
+    description: ISO-3166-1 alpha-2 country the catalog entry belongs to.
+  createdAt:
+    type: string
+    format: date-time
+    description: RFC 3339 UTC creation timestamp.
+  updatedAt:
+    type: string
+    format: date-time
+    description: RFC 3339 UTC last-update timestamp.

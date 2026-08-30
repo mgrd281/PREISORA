@@ -1,0 +1,41 @@
+title: Location
+description: >-
+  The generic geographic model of constitution §8: a coordinate plus optional resolution
+  context. This is also the platform-neutral output type of the clients' location
+  services (`LocationProviding` on iOS). Distances and accuracy are integer/decimal
+  meters - geo units are always meters (see CONVENTIONS.md).
+type: object
+required:
+  - lat
+  - lng
+properties:
+  lat:
+    type: number
+    minimum: -90
+    maximum: 90
+    description: Latitude in decimal degrees (WGS-84).
+  lng:
+    type: number
+    minimum: -180
+    maximum: 180
+    description: Longitude in decimal degrees (WGS-84).
+  accuracy:
+    type: number
+    minimum: 0
+    description: Horizontal accuracy radius in meters, when the client knows it.
+  postalCode:
+    type: string
+    description: Postal code of the resolved location, when known.
+    examples:
+      - '10178'
+  city:
+    type: string
+    description: City name of the resolved location, when known.
+    examples:
+      - Berlin
+  countryCode:
+    type: string
+    pattern: '^[A-Z]{2}$'
+    description: ISO-3166-1 alpha-2 country code of the resolved location, when known.
+    examples:
+      - DE

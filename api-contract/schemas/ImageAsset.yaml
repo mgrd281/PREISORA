@@ -1,0 +1,20 @@
+title: ImageAsset
+description: A product image rendition with its pixel dimensions (constitution §34 seam).
+type: object
+required:
+  - url
+  - widthPx
+  - heightPx
+properties:
+  url:
+    type: string
+    format: uri
+    description: Absolute URL of the image.
+  widthPx:
+    type: integer
+    minimum: 1
+    description: Width in pixels.
+  heightPx:
+    type: integer
+    minimum: 1
+    description: Height in pixels.

@@ -1,0 +1,17 @@
+title: ShoppingListItemCreateRequest
+type: object
+required:
+  - productId
+properties:
+  productId:
+    type: string
+    format: uuid
+  quantity:
+    type: integer
+    minimum: 1
+    default: 1
+  note:
+    type:
+      - string
+      - 'null'
+    maxLength: 500

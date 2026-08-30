@@ -1,0 +1,23 @@
+title: Retailer
+description: >-
+  A retail brand/chain. A Retailer may operate in multiple countries - country-specific
+  presence (currency, assortment, pricing) lives on RetailerMarket, never assume
+  identical pricing across countries (constitution §25).
+type: object
+required:
+  - id
+  - name
+  - slug
+properties:
+  id:
+    type: string
+    format: uuid
+  name:
+    type: string
+    examples:
+      - Kaufrausch
+  slug:
+    type: string
+    pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+    examples:
+      - kaufrausch

@@ -1,0 +1,61 @@
+# Path items for the Retailers tag. Referenced from ../openapi.yaml (ADR-0003).
+
+collection:
+  get:
+    operationId: listRetailers
+    tags:
+      - Retailers
+    summary: All retailers with their markets
+    description: >-
+      The full retailer catalog with markets embedded - clients use it to resolve the
+      `retailerMarketId` on every Offer and Store to a display name and currency. The
+      set is small; v1 returns it whole in the Page envelope with `nextCursor: null`.
+    x-preisora-status: implemented
+    responses:
+      '200':
+        description: All retailers, alphabetical, markets embedded.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/RetailerPage.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+byId:
+  parameters:
+    - name: retailerId
+      in: path
+      required: true
+      description: Canonical retailer UUID.
+      schema:
+        type: string
+        format: uuid
+  get:
+    operationId: getRetailerById
+    tags:
+      - Retailers
+    summary: Get a retailer by id, markets embedded
+    x-preisora-status: implemented
+    responses:
+      '200':
+        description: The retailer with its markets.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/RetailerWithMarkets.yaml
+      '400':
+        description: '`retailerId` is not a well-formed UUID (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '404':
+        description: >-
+          No retailer with this id (`code: RESOURCE_NOT_FOUND`,
+          `messageKey: error.retailer_not_found` - CONVENTIONS.md "Resource 404s").
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml

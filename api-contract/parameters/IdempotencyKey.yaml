@@ -1,0 +1,12 @@
+name: Idempotency-Key
+in: header
+required: false
+x-preisora-status: planned
+description: >-
+  RESERVED (`x-preisora-status: planned`). Defined now so the header name and shape
+  are fixed; the server currently accepts and IGNORES it. v1.0.0 idempotency relies on
+  natural keys instead (favorites unique per user+product, devices upserted on
+  user+platform+pushToken - see CONVENTIONS.md "Idempotency").
+schema:
+  type: string
+  format: uuid

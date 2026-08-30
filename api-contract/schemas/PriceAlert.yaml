@@ -1,0 +1,46 @@
+title: PriceAlert
+description: >-
+  A standing request to be notified when a Product's best FRESH price within
+  `radiusMeters` of `location` drops to or below `targetPrice`. Evaluated by the one
+  backend alert engine (constitution §10) - never client-side.
+type: object
+required:
+  - id
+  - productId
+  - targetPrice
+  - radiusMeters
+  - location
+  - isActive
+  - createdAt
+  - lastTriggeredAt
+properties:
+  id:
+    type: string
+    format: uuid
+  productId:
+    type: string
+    format: uuid
+  targetPrice:
+    $ref: ./Money.yaml
+  radiusMeters:
+    type: integer
+    minimum: 1
+    maximum: 50000
+    description: Evaluation radius in integer meters.
+    examples:
+      - 5000
+  location:
+    $ref: ./GeoPoint.yaml
+    description: Anchor point the radius is evaluated around.
+  isActive:
+    type: boolean
+    description: Inactive alerts are kept but not evaluated.
+  createdAt:
+    type: string
+    format: date-time
+  lastTriggeredAt:
+    type:
+      - string
+      - 'null'
+    format: date-time
+    description: RFC 3339 UTC timestamp of the last notification, or `null` if never triggered.

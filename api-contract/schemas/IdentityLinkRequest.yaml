@@ -1,0 +1,27 @@
+title: IdentityLinkRequest
+description: >-
+  Links an additional sign-in method to the authenticated account. For `apple` and
+  `google`, send `idToken`; for `email`, send `email` and `password`. Server validates
+  the combination and rejects mismatches with `VALIDATION_FAILED`.
+type: object
+required:
+  - provider
+properties:
+  provider:
+    type: string
+    enum:
+      - email
+      - apple
+      - google
+  idToken:
+    type: string
+    description: Provider-issued identity token. Required when `provider` is `apple` or `google`.
+  email:
+    type: string
+    format: email
+    description: Required when `provider` is `email`.
+  password:
+    type: string
+    minLength: 8
+    maxLength: 200
+    description: Required when `provider` is `email`.

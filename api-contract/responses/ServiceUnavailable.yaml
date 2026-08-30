@@ -1,0 +1,13 @@
+description: >-
+  The service or a required dependency is temporarily unavailable
+  (`code: SERVICE_TEMPORARILY_UNAVAILABLE`, `retryable: true`). Safe to retry with
+  backoff.
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/Error.yaml
+    example:
+      code: SERVICE_TEMPORARILY_UNAVAILABLE
+      messageKey: error.service_temporarily_unavailable
+      details: null
+      retryable: true

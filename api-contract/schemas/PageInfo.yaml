@@ -1,0 +1,20 @@
+title: PageInfo
+description: >-
+  Cursor-pagination metadata (ADR-0002). `nextCursor` is an opaque base64url-encoded
+  composite key - clients MUST treat it as a black box and pass it back verbatim.
+  Radius-bounded geo lists are capped and always return `nextCursor: null`,
+  `hasMore: false` in v1; the envelope makes cursoring over them additive later.
+type: object
+required:
+  - nextCursor
+  - hasMore
+properties:
+  nextCursor:
+    type:
+      - string
+      - 'null'
+    description: >-
+      Opaque cursor for the next page, or `null` when there is no next page.
+  hasMore:
+    type: boolean
+    description: Whether more items exist beyond this page.

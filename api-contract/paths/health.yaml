@@ -1,0 +1,40 @@
+# Path items for the Health tag. Referenced from ../openapi.yaml (ADR-0003).
+
+health:
+  get:
+    operationId: getHealth
+    tags:
+      - Health
+    summary: Liveness/readiness probe
+    description: >-
+      Returns `ok` when the API and its critical dependencies (PostgreSQL, Redis) are
+      reachable. Anonymous; no side effects.
+    x-preisora-status: implemented
+    responses:
+      '200':
+        description: Service healthy.
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+                - timestamp
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - ok
+                timestamp:
+                  type: string
+                  format: date-time
+                  description: RFC 3339 UTC server time.
+                version:
+                  type: string
+                  description: Deployed backend version, when available.
+                  examples:
+                    - 1.0.0
+      '429':
+        $ref: ../responses/RateLimited.yaml
+      '503':
+        $ref: ../responses/ServiceUnavailable.yaml

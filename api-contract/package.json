@@ -1,0 +1,15 @@
+{
+  "name": "@preisora/api-contract",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PREISORA OpenAPI 3.1 contract - the design-first canon (ADR-0003). Redocly lints and bundles it; openapi-typescript generates backend types from the bundle.",
+  "scripts": {
+    "lint": "redocly lint openapi.yaml",
+    "bundle": "redocly bundle openapi.yaml -o dist/openapi.bundled.yaml && redocly bundle openapi.yaml -o dist/openapi.bundled.json",
+    "typegen": "openapi-typescript dist/openapi.bundled.json -o ../backend/src/generated/api-types.ts"
+  },
+  "devDependencies": {
+    "@redocly/cli": "2.49.0",
+    "openapi-typescript": "7.13.0"
+  }
+}

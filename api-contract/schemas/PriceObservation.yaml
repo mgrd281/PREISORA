@@ -1,0 +1,39 @@
+title: PriceObservation
+description: >-
+  An append-only historical record of a price seen for a Product at a Store (or
+  market-wide) at a point in time. Feeds the price-history aggregation.
+  NOTE - canonical vocabulary, not yet served: no v1.0.0 endpoint returns raw
+  observations (history is served pre-aggregated as PriceHistory), so this schema is
+  deliberately not referenced by any operation and does not enter the bundle yet.
+  It is kept here so the observations endpoint, when it ships, is additive
+  (see CONVENTIONS.md).
+type: object
+required:
+  - id
+  - productId
+  - retailerMarketId
+  - storeId
+  - price
+  - observedAt
+properties:
+  id:
+    type: string
+    format: uuid
+  productId:
+    type: string
+    format: uuid
+  retailerMarketId:
+    type: string
+    format: uuid
+  storeId:
+    type:
+      - string
+      - 'null'
+    format: uuid
+    description: Store the price was observed at, or `null` for a market-wide observation.
+  price:
+    $ref: ./Money.yaml
+  observedAt:
+    type: string
+    format: date-time
+    description: RFC 3339 UTC timestamp of the observation.

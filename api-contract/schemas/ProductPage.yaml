@@ -1,0 +1,15 @@
+title: ProductPage
+description: >-
+  Cursor-paginated page of Products (ADR-0002). Search serves a real `(name, id)`
+  cursor from day 1.
+type: object
+required:
+  - data
+  - pageInfo
+properties:
+  data:
+    type: array
+    items:
+      $ref: ./Product.yaml
+  pageInfo:
+    $ref: ./PageInfo.yaml

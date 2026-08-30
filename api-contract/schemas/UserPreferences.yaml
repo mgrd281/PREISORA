@@ -1,0 +1,31 @@
+title: UserPreferences
+description: >-
+  Cross-device user preferences (constitution §12 sync seam). The endpoints serving
+  this schema are stubbed (501 `FEATURE_NOT_AVAILABLE`) in v1.0.0 - the shape is final
+  so clients build against it from day 1.
+type: object
+required:
+  - preferredStoreIds
+  - searchRadiusMeters
+  - priceHistoryRange
+properties:
+  preferredStoreIds:
+    type: array
+    items:
+      type: string
+      format: uuid
+    description: Stores the user pinned; influences ranking and the optimizer.
+  searchRadiusMeters:
+    type: integer
+    minimum: 1
+    maximum: 50000
+    description: Default radius in integer meters for offer/store queries.
+    examples:
+      - 5000
+  priceHistoryRange:
+    type: string
+    enum:
+      - 7d
+      - 30d
+      - 90d
+    description: Default range for the price-history view.

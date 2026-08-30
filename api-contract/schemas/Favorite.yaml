@@ -1,0 +1,24 @@
+title: Favorite
+description: >-
+  A user's bookmark of a Product. Unique per (user, product) - creating an existing
+  favorite returns the existing row with HTTP 200 instead of 201 (natural-key
+  idempotency, see CONVENTIONS.md). The Product is embedded so list screens render
+  without extra lookups.
+type: object
+required:
+  - id
+  - productId
+  - product
+  - createdAt
+properties:
+  id:
+    type: string
+    format: uuid
+  productId:
+    type: string
+    format: uuid
+  product:
+    $ref: ./Product.yaml
+  createdAt:
+    type: string
+    format: date-time

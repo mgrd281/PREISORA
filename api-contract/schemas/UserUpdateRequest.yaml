@@ -1,0 +1,16 @@
+title: UserUpdateRequest
+description: Partial update of the current user. Omitted fields stay unchanged.
+type: object
+properties:
+  displayName:
+    type:
+      - string
+      - 'null'
+    maxLength: 80
+    description: New display name, or `null` to clear it.
+  countryCode:
+    type: string
+    pattern: '^[A-Z]{2}$'
+  locale:
+    type: string
+    pattern: '^[a-z]{2}(-[A-Z]{2})?$'

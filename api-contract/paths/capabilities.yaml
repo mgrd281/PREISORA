@@ -1,0 +1,42 @@
+# Path items for the Capabilities tag. Referenced from ../openapi.yaml (ADR-0003).
+
+root:
+  get:
+    operationId: getCapabilities
+    tags:
+      - Capabilities
+    summary: Feature availability for the calling context
+    description: >-
+      Resolves the feature-flag matrix (constitution §16-17) against the request
+      context - country, platform, app version, cohort - derived from the optional
+      context headers below, `Accept-Language`, and (when authenticated) the user
+      profile. Clients call this at launch and gate UI sections on the returned flags;
+      they never hardcode availability. Anonymous.
+    x-preisora-status: implemented
+    parameters:
+      - name: X-App-Platform
+        in: header
+        required: false
+        description: Client platform, for platform-scoped flags.
+        schema:
+          type: string
+          enum:
+            - ios
+            - android
+      - name: X-App-Version
+        in: header
+        required: false
+        description: Client app version, for min-version-gated flags.
+        schema:
+          type: string
+          examples:
+            - 1.0.0
+    responses:
+      '200':
+        description: Resolved capability flags.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Capabilities.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml

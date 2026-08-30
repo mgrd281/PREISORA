@@ -1,0 +1,59 @@
+title: Error
+description: >-
+  The single wire error envelope (constitution §32). Every 4xx/5xx response body in this
+  API uses this schema - no exceptions. The `code` catalog is closed and mirrored
+  verbatim in `backend/src/common/errors/error-codes.ts`, iOS `APIErrorCode`, and
+  `docs/domain-glossary.md`; changing it requires updating all four in one change.
+  Clients localize their own user-facing copy from `messageKey` - the backend never
+  sends UI text (§33). Clients MUST map an unrecognized `code` to a generic failure
+  state rather than crash (additive-evolution rule, CONVENTIONS.md).
+  `PRODUCT_NOT_FOUND` is specific to product resolution; every other missing resource
+  uses `RESOURCE_NOT_FOUND` with a precise `messageKey`.
+type: object
+required:
+  - code
+  - messageKey
+  - details
+  - retryable
+properties:
+  code:
+    type: string
+    description: >-
+      Machine-readable error class driving client behavior. `PRODUCT_NOT_FOUND` means a
+      Product could not be resolved (by id, GTIN, slug, or as a reference in a request
+      body); `RESOURCE_NOT_FOUND` is the generic not-found class for every other
+      resource (store, retailer, price alert, shopping list, list item, device,
+      identity), always paired with a `messageKey` naming the specific resource.
+    enum:
+      - PRODUCT_NOT_FOUND
+      - RESOURCE_NOT_FOUND
+      - NO_CURRENT_PRICES
+      - INVALID_GTIN
+      - LOCATION_REQUIRED
+      - RATE_LIMITED
+      - SERVICE_TEMPORARILY_UNAVAILABLE
+      - VALIDATION_FAILED
+      - FEATURE_NOT_AVAILABLE
+      - UNAUTHORIZED
+  messageKey:
+    type: string
+    description: >-
+      Dot-namespaced localization key for user-facing copy, resolved by the client
+      (e.g. `error.product_not_found`, `error.store_not_found`).
+    examples:
+      - error.product_not_found
+  details:
+    type:
+      - object
+      - 'null'
+    description: >-
+      Free-form, machine-readable context for the specific occurrence
+      (e.g. `{"gtin": "4012345678901"}` or field-level validation issues). `null` when
+      there is nothing to add.
+    additionalProperties: true
+  retryable:
+    type: boolean
+    description: >-
+      Whether retrying the identical request may succeed (e.g. `true` for
+      `RATE_LIMITED` and `SERVICE_TEMPORARILY_UNAVAILABLE`). Clients only offer a
+      retry affordance when `true`.

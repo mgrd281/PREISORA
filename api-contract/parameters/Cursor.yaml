@@ -1,0 +1,9 @@
+name: cursor
+in: query
+required: false
+description: >-
+  Opaque pagination cursor from the previous page's `pageInfo.nextCursor` (ADR-0002).
+  Pass back verbatim; never construct or inspect it. A malformed or expired cursor is
+  rejected with 400 `VALIDATION_FAILED`.
+schema:
+  type: string

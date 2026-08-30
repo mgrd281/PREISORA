@@ -1,0 +1,50 @@
+title: PriceHistory
+description: >-
+  Daily min/avg price aggregates for a Product over a requested range, computed
+  server-side from PriceObservations. Amounts are integer minor units in a single
+  currency - never floats (§24).
+type: object
+required:
+  - productId
+  - range
+  - points
+properties:
+  productId:
+    type: string
+    format: uuid
+  range:
+    type: string
+    enum:
+      - 7d
+      - 30d
+      - 90d
+    description: The range this aggregation covers.
+  points:
+    type: array
+    description: One entry per calendar day (UTC) that had at least one observation, ascending by date.
+    items:
+      type: object
+      required:
+        - date
+        - minAmountMinor
+        - avgAmountMinor
+        - currencyCode
+      properties:
+        date:
+          type: string
+          format: date
+          description: Calendar day (UTC) the aggregate covers.
+          examples:
+            - '2026-08-29'
+        minAmountMinor:
+          type: integer
+          format: int64
+          description: Lowest observed amount that day, in minor units.
+        avgAmountMinor:
+          type: integer
+          format: int64
+          description: Average observed amount that day, in minor units (rounded).
+        currencyCode:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          description: ISO-4217 currency of both amounts.

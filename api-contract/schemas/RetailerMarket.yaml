@@ -1,0 +1,31 @@
+title: RetailerMarket
+description: >-
+  A Retailer's presence in one country. Offers, assortments and stores always hang off
+  a RetailerMarket, not the Retailer directly (constitution §25).
+type: object
+required:
+  - id
+  - retailerId
+  - countryCode
+  - currencyCode
+  - displayName
+properties:
+  id:
+    type: string
+    format: uuid
+  retailerId:
+    type: string
+    format: uuid
+  countryCode:
+    type: string
+    pattern: '^[A-Z]{2}$'
+    description: ISO-3166-1 alpha-2 country of this market.
+  currencyCode:
+    type: string
+    pattern: '^[A-Z]{3}$'
+    description: ISO-4217 currency all of this market's offers are priced in.
+  displayName:
+    type: string
+    description: Market-localized display name clients render for offers/stores.
+    examples:
+      - Kaufrausch Deutschland

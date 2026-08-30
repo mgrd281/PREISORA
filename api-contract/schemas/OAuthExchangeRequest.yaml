@@ -1,0 +1,17 @@
+title: OAuthExchangeRequest
+description: >-
+  Sign in with Apple / Google ID-token exchange. The provider subject becomes a linked
+  UserIdentity - never the primary identity (constitution §11).
+type: object
+required:
+  - provider
+  - idToken
+properties:
+  provider:
+    type: string
+    enum:
+      - apple
+      - google
+  idToken:
+    type: string
+    description: The provider-issued identity token (JWT), verified server-side against provider JWKS.

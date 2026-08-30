@@ -1,0 +1,13 @@
+description: >-
+  Missing, expired, or invalid bearer token (`code: UNAUTHORIZED`,
+  `messageKey: error.unauthorized`). Obtain tokens via `POST /auth/anonymous`,
+  `/auth/register`, `/auth/login`, or `/auth/refresh`.
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/Error.yaml
+    example:
+      code: UNAUTHORIZED
+      messageKey: error.unauthorized
+      details: null
+      retryable: false

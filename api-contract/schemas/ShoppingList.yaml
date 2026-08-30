@@ -1,0 +1,27 @@
+title: ShoppingList
+description: A user-owned list of ShoppingListItems, optimizable via `POST /shopping-lists/{listId}/optimize`.
+type: object
+required:
+  - id
+  - name
+  - items
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+  name:
+    type: string
+    examples:
+      - Wocheneinkauf
+  items:
+    type: array
+    items:
+      $ref: ./ShoppingListItem.yaml
+  createdAt:
+    type: string
+    format: date-time
+  updatedAt:
+    type: string
+    format: date-time

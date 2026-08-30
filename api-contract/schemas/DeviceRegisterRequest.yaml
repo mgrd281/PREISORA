@@ -1,0 +1,30 @@
+title: DeviceRegisterRequest
+description: >-
+  Device registration payload. Upserted on the natural key (user, platform,
+  pushToken): 201 on first registration, 200 with the refreshed existing row on
+  re-registration.
+type: object
+required:
+  - platform
+  - pushToken
+  - appVersion
+  - locale
+properties:
+  platform:
+    type: string
+    enum:
+      - ios
+      - android
+  pushToken:
+    type: string
+    minLength: 1
+  appVersion:
+    type: string
+    minLength: 1
+    examples:
+      - 1.0.0
+  locale:
+    type: string
+    pattern: '^[a-z]{2}(-[A-Z]{2})?$'
+    examples:
+      - de-DE

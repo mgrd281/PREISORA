@@ -1,0 +1,8 @@
+title: RefreshRequest
+type: object
+required:
+  - refreshToken
+properties:
+  refreshToken:
+    type: string
+    description: The refresh token from the last AuthTokens. Single-use - rotated on success.

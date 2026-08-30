@@ -1,0 +1,117 @@
+# Path items for the Devices tag. Referenced from ../openapi.yaml (ADR-0003).
+# All operations require a bearer token.
+
+collection:
+  post:
+    operationId: registerDevice
+    tags:
+      - Devices
+    summary: Register (or refresh) a device for push delivery
+    description: >-
+      Upsert on the natural key (user, platform, pushToken): first registration
+      creates the device and answers 201; re-registering the same token refreshes
+      `appVersion`/`locale`/`lastSeenAt` on the existing row and answers 200
+      (natural-key idempotency, CONVENTIONS.md).
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    parameters:
+      - $ref: ../parameters/IdempotencyKey.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/DeviceRegisterRequest.yaml
+    responses:
+      '200':
+        description: Existing device refreshed (same user+platform+pushToken).
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Device.yaml
+      '201':
+        description: Device registered.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Device.yaml
+      '400':
+        description: 'Invalid payload (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+byId:
+  parameters:
+    - name: deviceId
+      in: path
+      required: true
+      description: Device UUID (must belong to the authenticated account).
+      schema:
+        type: string
+        format: uuid
+  patch:
+    operationId: updateDevice
+    tags:
+      - Devices
+    summary: Update a registered device
+    description: Token rotation, app updates, locale changes. Partial update.
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/DeviceUpdateRequest.yaml
+    responses:
+      '200':
+        description: The updated device.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Device.yaml
+      '400':
+        description: 'Invalid payload (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '404':
+        description: >-
+          No such device on this account (`code: RESOURCE_NOT_FOUND`,
+          `messageKey: error.device_not_found` - CONVENTIONS.md "Resource 404s").
+          Ownership by another account is indistinguishable from absence.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+  delete:
+    operationId: deleteDevice
+    tags:
+      - Devices
+    summary: Deregister a device
+    description: >-
+      Stops push delivery to this device. Idempotent - deleting an absent device
+      answers 204 as well (CONVENTIONS.md "Idempotency").
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    responses:
+      '204':
+        description: Device gone (deleted now or already absent).
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml

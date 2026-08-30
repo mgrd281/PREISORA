@@ -1,0 +1,13 @@
+title: FavoritePage
+description: Page envelope of Favorites (ADR-0002), newest first.
+type: object
+required:
+  - data
+  - pageInfo
+properties:
+  data:
+    type: array
+    items:
+      $ref: ./Favorite.yaml
+  pageInfo:
+    $ref: ./PageInfo.yaml

@@ -1,0 +1,14 @@
+description: >-
+  The operation (or the requested variant of it) is specified but not yet available
+  (`code: FEATURE_NOT_AVAILABLE`, `retryable: false`). The wire shapes documented here
+  are final - clients build against them today and the 501 disappears when the feature
+  ships (`x-preisora-status` moves to `implemented`).
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/Error.yaml
+    example:
+      code: FEATURE_NOT_AVAILABLE
+      messageKey: error.feature_not_available
+      details: null
+      retryable: false

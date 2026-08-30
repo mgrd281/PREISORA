@@ -1,0 +1,22 @@
+title: AuthTokens
+description: >-
+  Token pair issued by every successful auth operation (anonymous, register, login,
+  refresh, OAuth exchange). The refresh token is single-use and rotated on refresh.
+type: object
+required:
+  - accessToken
+  - refreshToken
+  - expiresIn
+properties:
+  accessToken:
+    type: string
+    description: Short-lived JWT bearer token for the `Authorization` header.
+  refreshToken:
+    type: string
+    description: Long-lived opaque token exchanged at `POST /auth/refresh`.
+  expiresIn:
+    type: integer
+    minimum: 1
+    description: Access-token lifetime in seconds from the moment of issuance.
+    examples:
+      - 900

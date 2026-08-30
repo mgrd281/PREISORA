@@ -1,0 +1,28 @@
+title: Capabilities
+description: >-
+  Backend-declared feature availability (constitution §16-17), resolved server-side per
+  country / platform / app version / cohort from the request context. Clients gate UI
+  sections on these flags and never hardcode feature availability.
+type: object
+required:
+  - features
+properties:
+  features:
+    type: object
+    required:
+      - priceHistory
+      - priceAlerts
+      - shoppingOptimizer
+      - receiptScanner
+      - visualProductScan
+    properties:
+      priceHistory:
+        type: boolean
+      priceAlerts:
+        type: boolean
+      shoppingOptimizer:
+        type: boolean
+      receiptScanner:
+        type: boolean
+      visualProductScan:
+        type: boolean

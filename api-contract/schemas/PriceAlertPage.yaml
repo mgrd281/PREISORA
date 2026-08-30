@@ -1,0 +1,15 @@
+title: PriceAlertPage
+description: >-
+  Page envelope of PriceAlerts (ADR-0002). Per-user alert sets are small; v1 returns
+  them whole with `nextCursor: null`, `hasMore: false`.
+type: object
+required:
+  - data
+  - pageInfo
+properties:
+  data:
+    type: array
+    items:
+      $ref: ./PriceAlert.yaml
+  pageInfo:
+    $ref: ./PageInfo.yaml

@@ -1,0 +1,45 @@
+title: Device
+description: >-
+  A registered client device for push delivery (constitution §10). Devices are
+  upserted on the natural key (user, platform, pushToken) - re-registering the same
+  token updates the row. Platform is `ios | android` - never an APNs/FCM-specific
+  model on the wire.
+type: object
+required:
+  - id
+  - platform
+  - pushToken
+  - appVersion
+  - locale
+  - createdAt
+  - lastSeenAt
+properties:
+  id:
+    type: string
+    format: uuid
+  platform:
+    type: string
+    enum:
+      - ios
+      - android
+  pushToken:
+    type: string
+    description: Opaque platform push token (APNs device token / FCM registration token).
+  appVersion:
+    type: string
+    description: Client app version registering the device.
+    examples:
+      - 1.0.0
+  locale:
+    type: string
+    pattern: '^[a-z]{2}(-[A-Z]{2})?$'
+    description: Device locale at registration time, for localized pushes.
+    examples:
+      - de-DE
+  createdAt:
+    type: string
+    format: date-time
+  lastSeenAt:
+    type: string
+    format: date-time
+    description: RFC 3339 UTC timestamp of the last registration/heartbeat for this device.

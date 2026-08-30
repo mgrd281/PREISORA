@@ -1,0 +1,32 @@
+title: UserIdentity
+description: >-
+  A linked sign-in method resolving to one User (constitution §11). An Apple/Google
+  subject is never the primary identity - `users.id` is. The identity-management
+  operations are stubbed (501) in v1.0.0; this shape is final.
+type: object
+required:
+  - id
+  - provider
+  - providerSubject
+  - createdAt
+properties:
+  id:
+    type: string
+    format: uuid
+  provider:
+    type: string
+    enum:
+      - anonymous
+      - email
+      - apple
+      - google
+  providerSubject:
+    type:
+      - string
+      - 'null'
+    description: >-
+      Display-safe identifier of the identity at the provider (e.g. the email address
+      for `email`, a masked subject for `apple`/`google`); `null` for `anonymous`.
+  createdAt:
+    type: string
+    format: date-time

@@ -1,0 +1,89 @@
+# Redocly configuration for the PREISORA contract (design-first canon, ADR-0003).
+# `npm run lint` must be green (zero errors, zero warnings) before any contract
+# change merges. Custom rules below enforce the house conventions; whatever they
+# cannot express lives in CONVENTIONS.md "Review checklist".
+
+extends:
+  - recommended
+
+rules:
+  # --- Built-in rules pinned to error (some are warn-level in `recommended`) ---
+  operation-operationId: error
+  operation-operationId-unique: error
+  operation-summary: error
+  paths-kebab-case: error
+  operation-4xx-response: error
+  no-unused-components: error
+  no-invalid-media-type-examples: error
+  no-invalid-schema-examples: error
+  tag-description: error
+  security-defined: error
+
+  # The localhost dev server is a required part of this contract (backend/ runs on
+  # http://localhost:3000 in development); this heuristic would flag it.
+  no-server-example.com: off
+
+  # /products/{productId}/offers vs /products/by-gtin/{gtin} etc. overlap only in
+  # the theoretical URL space (a UUID/GTIN can never equal the literal segments
+  # `by-gtin`/`by-slug`/`offers`/`price-history`). The explicit-prefix lookup naming
+  # is orchestrator decision #4 - deliberate, so this heuristic is off.
+  no-ambiguous-paths: off
+
+  # --- House conventions (assertions) ---
+
+  # Every operation must declare its implementation status.
+  rule/operation-x-preisora-status:
+    subject:
+      type: Operation
+      property: x-preisora-status
+    assertions:
+      defined: true
+      enum:
+        - implemented
+        - stubbed
+        - planned
+    severity: error
+    message: Every operation must carry x-preisora-status (implemented | stubbed | planned).
+
+  # Every 4xx/5xx response body must be the canonical Error envelope, by $ref.
+  rule/error-responses-use-error-envelope:
+    subject:
+      type: MediaType
+      property: schema
+    where:
+      - subject:
+          type: Response
+          filterInParentKeys:
+            - '400'
+            - '401'
+            - '403'
+            - '404'
+            - '405'
+            - '409'
+            - '410'
+            - '412'
+            - '415'
+            - '422'
+            - '429'
+            - '500'
+            - '501'
+            - '502'
+            - '503'
+            - '504'
+        assertions:
+          defined: true
+    assertions:
+      # Matches ../schemas/Error.yaml in the split source AND #/components/schemas/Error
+      # in the bundle (openapi-typescript re-runs these rules against the bundle).
+      ref: /schemas\/Error(\.yaml)?$/
+    severity: error
+    message: Every 4xx/5xx response body must $ref schemas/Error.yaml (single error envelope, §32).
+
+  # JSON properties are camelCase everywhere on the wire.
+  rule/schema-properties-camel-case:
+    subject:
+      type: SchemaProperties
+    assertions:
+      casing: camelCase
+    severity: error
+    message: JSON properties must be camelCase (CONVENTIONS.md "Casing").

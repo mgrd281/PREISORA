@@ -1,0 +1,22 @@
+title: RegisterRequest
+description: >-
+  Email registration payload. When called with a valid anonymous bearer token, the
+  email identity is linked to the existing anonymous account (scan-before-signup
+  funnel); without one, a fresh account is created.
+type: object
+required:
+  - email
+  - password
+properties:
+  email:
+    type: string
+    format: email
+  password:
+    type: string
+    minLength: 8
+    maxLength: 200
+    description: Plaintext over TLS; stored as an argon2 hash.
+  displayName:
+    type: string
+    minLength: 1
+    maxLength: 80

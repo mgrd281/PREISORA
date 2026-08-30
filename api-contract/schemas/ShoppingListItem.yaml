@@ -1,0 +1,24 @@
+title: ShoppingListItem
+description: One Product entry on a ShoppingList.
+type: object
+required:
+  - id
+  - productId
+  - quantity
+  - note
+properties:
+  id:
+    type: string
+    format: uuid
+  productId:
+    type: string
+    format: uuid
+  quantity:
+    type: integer
+    minimum: 1
+    description: How many units of the product the user intends to buy.
+  note:
+    type:
+      - string
+      - 'null'
+    description: Free-form user note (e.g. "the lactose-free one"), or `null`.

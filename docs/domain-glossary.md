@@ -41,8 +41,12 @@ here first — do not invent a synonym in code.
 Single wire contract: `{ code, messageKey, details, retryable }`.
 
 Catalog (mirrored verbatim in `backend/src/common/errors/error-codes.ts`, the OpenAPI `Error` schema,
-and iOS `APIErrorCode`): `PRODUCT_NOT_FOUND`, `NO_CURRENT_PRICES`, `INVALID_GTIN`,
-`LOCATION_REQUIRED`, `RATE_LIMITED`, `SERVICE_TEMPORARILY_UNAVAILABLE`, `VALIDATION_FAILED`,
-`FEATURE_NOT_AVAILABLE`, `UNAUTHORIZED`.
+and iOS `APIErrorCode`): `PRODUCT_NOT_FOUND`, `RESOURCE_NOT_FOUND`, `NO_CURRENT_PRICES`,
+`INVALID_GTIN`, `LOCATION_REQUIRED`, `RATE_LIMITED`, `SERVICE_TEMPORARILY_UNAVAILABLE`,
+`VALIDATION_FAILED`, `FEATURE_NOT_AVAILABLE`, `UNAUTHORIZED`.
+
+`PRODUCT_NOT_FOUND` is specific to product resolution (by id, GTIN, slug, or a referenced
+`productId`); every other missing resource — store, retailer, price alert, shopping list,
+list item, device, identity — answers `RESOURCE_NOT_FOUND` with a precise `messageKey`.
 
 Clients localize their own user-facing copy from `messageKey`; the backend never sends UI text (§33).

@@ -1,0 +1,18 @@
+summary: A resolved product (demo seed data)
+description: >-
+  Typical `GET /products/by-gtin/{gtin}` / `GET /products/{productId}` payload.
+  Retailer and GTIN values are fictional demo data.
+value:
+  id: 3fa2d1b8-5c44-4a7e-9b0e-6f2a91c47d55
+  gtin: '4012345678901'
+  slug: vollmilch-3-5-1l
+  name: Vollmilch 3,5%
+  brand: Marktfrisch
+  quantityText: 1 L
+  images:
+    - url: https://cdn.preisora.de/products/3fa2d1b8-5c44-4a7e-9b0e-6f2a91c47d55/main.jpg
+      widthPx: 800
+      heightPx: 800
+  countryCode: DE
+  createdAt: '2026-08-01T09:30:00Z'
+  updatedAt: '2026-08-28T06:15:00Z'

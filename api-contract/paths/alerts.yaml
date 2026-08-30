@@ -1,0 +1,133 @@
+# Path items for the Alerts tag. Referenced from ../openapi.yaml (ADR-0003).
+# All operations require a bearer token. Alerts are evaluated by the ONE backend
+# alert engine (constitution §10) - never client-side.
+
+collection:
+  get:
+    operationId: listAlerts
+    tags:
+      - Alerts
+    summary: List the account's price alerts
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: All alerts of the account (active and inactive), newest first.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/PriceAlertPage.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+  post:
+    operationId: createAlert
+    tags:
+      - Alerts
+    summary: Create a price alert
+    description: >-
+      Notifies the account's registered devices when the product's best FRESH price
+      within the radius drops to or below `targetPrice`. Gate the UI on the
+      `priceAlerts` capability.
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    parameters:
+      - $ref: ../parameters/IdempotencyKey.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/AlertCreateRequest.yaml
+    responses:
+      '201':
+        description: Alert created.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/PriceAlert.yaml
+      '400':
+        description: 'Invalid payload (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '404':
+        description: 'The referenced product does not exist (`code: PRODUCT_NOT_FOUND`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+byId:
+  parameters:
+    - name: alertId
+      in: path
+      required: true
+      description: PriceAlert UUID (must belong to the authenticated account).
+      schema:
+        type: string
+        format: uuid
+  patch:
+    operationId: updateAlert
+    tags:
+      - Alerts
+    summary: Update a price alert
+    description: Partial update - adjust target price, radius, location, or pause via `isActive`.
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/AlertUpdateRequest.yaml
+    responses:
+      '200':
+        description: The updated alert.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/PriceAlert.yaml
+      '400':
+        description: 'Invalid payload (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '404':
+        description: >-
+          No such alert on this account (`code: RESOURCE_NOT_FOUND`,
+          `messageKey: error.alert_not_found` - CONVENTIONS.md "Resource 404s").
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+  delete:
+    operationId: deleteAlert
+    tags:
+      - Alerts
+    summary: Delete a price alert
+    description: Idempotent - deleting an absent alert answers 204 as well.
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    responses:
+      '204':
+        description: Alert gone (deleted now or already absent).
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml

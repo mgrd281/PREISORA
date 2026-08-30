@@ -1,0 +1,15 @@
+title: RetailerWithMarkets
+description: >-
+  A Retailer with its markets embedded. This is the shape the Retailers endpoints
+  return: clients need it to resolve the `retailerMarketId` carried by every Offer and
+  Store to a display name and currency without extra round trips.
+allOf:
+  - $ref: ./Retailer.yaml
+  - type: object
+    required:
+      - markets
+    properties:
+      markets:
+        type: array
+        items:
+          $ref: ./RetailerMarket.yaml

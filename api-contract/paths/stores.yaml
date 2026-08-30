@@ -1,0 +1,77 @@
+# Path items for the Stores tag. Referenced from ../openapi.yaml (ADR-0003).
+
+collection:
+  get:
+    operationId: listStores
+    tags:
+      - Stores
+    summary: Stores near a location
+    description: >-
+      Radius-bounded, distance-ordered store search. Capped at 50 results; the Page
+      envelope always carries `nextCursor: null` today - a `(distanceMeters, id)`
+      composite cursor is designed in ADR-0002 and lands additively when needed.
+    x-preisora-status: implemented
+    parameters:
+      - $ref: ../parameters/Lat.yaml
+      - $ref: ../parameters/Lng.yaml
+      - $ref: ../parameters/RadiusMeters.yaml
+    responses:
+      '200':
+        description: Stores within the radius, nearest first, each with `distanceMeters` set.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/StorePage.yaml
+      '400':
+        description: >-
+          `lat`/`lng` missing (`code: LOCATION_REQUIRED`) or a parameter is out of
+          range (`code: VALIDATION_FAILED`).
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+byId:
+  parameters:
+    - name: storeId
+      in: path
+      required: true
+      description: Canonical store UUID (the `https://preisora.de/store/{storeId}` deep link).
+      schema:
+        type: string
+        format: uuid
+  get:
+    operationId: getStoreById
+    tags:
+      - Stores
+    summary: Get a store by id
+    description: >-
+      Single-store lookup (deep links, favorites-of-stores later). No query location
+      is involved, so `distanceMeters` is `null`.
+    x-preisora-status: implemented
+    responses:
+      '200':
+        description: The store (`distanceMeters` is `null` - no query location).
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Store.yaml
+      '400':
+        description: '`storeId` is not a well-formed UUID (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '404':
+        description: >-
+          No store with this id (`code: RESOURCE_NOT_FOUND`,
+          `messageKey: error.store_not_found`, `details: {"resource": "store"}` -
+          CONVENTIONS.md "Resource 404s").
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml

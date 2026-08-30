@@ -1,0 +1,19 @@
+title: UserPreferencesUpdateRequest
+description: Partial update of UserPreferences. Omitted fields stay unchanged.
+type: object
+properties:
+  preferredStoreIds:
+    type: array
+    items:
+      type: string
+      format: uuid
+  searchRadiusMeters:
+    type: integer
+    minimum: 1
+    maximum: 50000
+  priceHistoryRange:
+    type: string
+    enum:
+      - 7d
+      - 30d
+      - 90d

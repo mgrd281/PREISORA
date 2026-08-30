@@ -1,0 +1,85 @@
+title: OptimizationResult
+description: >-
+  Output of the shopping optimizer (constitution §23). Computed ONLY server-side.
+  `estimatedSavings` compares `totalPrice` against the single-store baseline;
+  `confidence` is a coarse heuristic reflecting offer freshness and coverage.
+type: object
+required:
+  - strategy
+  - totalPrice
+  - estimatedSavings
+  - confidence
+  - stores
+  - unavailableItems
+properties:
+  strategy:
+    type: string
+    enum:
+      - cheapest_total
+      - fewest_stores
+      - balanced
+    description: >-
+      Strategy the result was computed with. `balanced` is not yet implemented and
+      returns 501 `FEATURE_NOT_AVAILABLE` at runtime.
+  totalPrice:
+    $ref: ./Money.yaml
+    description: Sum of all per-store subtotals.
+  estimatedSavings:
+    $ref: ./Money.yaml
+    description: Estimated amount saved versus the baseline single-store purchase.
+  confidence:
+    type: number
+    minimum: 0
+    maximum: 1
+    description: Coarse confidence heuristic in [0, 1].
+  stores:
+    type: array
+    description: The stores to visit, each with its share of the list.
+    items:
+      type: object
+      required:
+        - store
+        - items
+        - subtotal
+      properties:
+        store:
+          $ref: ./Store.yaml
+          description: Store to visit, including `distanceMeters` from the query location.
+        items:
+          type: array
+          items:
+            type: object
+            required:
+              - productId
+              - quantity
+              - offer
+            properties:
+              productId:
+                type: string
+                format: uuid
+              quantity:
+                type: integer
+                minimum: 1
+              offer:
+                $ref: ./Offer.yaml
+                description: The Offer this item should be bought at.
+        subtotal:
+          $ref: ./Money.yaml
+          description: Total for this store's items (quantity-weighted effective prices).
+  unavailableItems:
+    type: array
+    description: List items no fresh offer in radius could satisfy.
+    items:
+      type: object
+      required:
+        - productId
+        - reason
+      properties:
+        productId:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          description: Machine-readable reason token.
+          examples:
+            - no_fresh_offer_in_radius

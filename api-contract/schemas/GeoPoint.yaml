@@ -1,0 +1,21 @@
+title: GeoPoint
+description: A bare WGS-84 coordinate pair. Platform-neutral (never a CLLocation or Google LatLng).
+type: object
+required:
+  - lat
+  - lng
+properties:
+  lat:
+    type: number
+    minimum: -90
+    maximum: 90
+    description: Latitude in decimal degrees (WGS-84).
+    examples:
+      - 52.5219
+  lng:
+    type: number
+    minimum: -180
+    maximum: 180
+    description: Longitude in decimal degrees (WGS-84).
+    examples:
+      - 13.4132

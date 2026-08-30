@@ -1,0 +1,118 @@
+# Path items for the Favorites tag. Referenced from ../openapi.yaml (ADR-0003).
+# All operations require a bearer token (anonymous accounts can favorite too).
+
+collection:
+  get:
+    operationId: listFavorites
+    tags:
+      - Favorites
+    summary: List the account's favorites
+    description: >-
+      Newest first, products embedded. Accepts cursor pagination (ADR-0002); the
+      phase-1 backend returns the full set with `nextCursor: null`.
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    parameters:
+      - $ref: ../parameters/Cursor.yaml
+      - $ref: ../parameters/Limit.yaml
+    responses:
+      '200':
+        description: The account's favorites.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/FavoritePage.yaml
+      '400':
+        description: 'Malformed `cursor` or out-of-range `limit` (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+  post:
+    operationId: addFavorite
+    tags:
+      - Favorites
+    summary: Favorite a product
+    description: >-
+      Natural-key idempotent (unique per user+product, CONVENTIONS.md): first call
+      answers 201 with the new row; favoriting an already-favorited product answers
+      200 with the EXISTING row - never an error, never a duplicate.
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    parameters:
+      - $ref: ../parameters/IdempotencyKey.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../schemas/FavoriteCreateRequest.yaml
+    responses:
+      '200':
+        description: Already favorited - the existing row.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Favorite.yaml
+      '201':
+        description: Favorite created.
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Favorite.yaml
+      '400':
+        description: 'Invalid payload (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '404':
+        description: 'The referenced product does not exist (`code: PRODUCT_NOT_FOUND`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml
+
+byProductId:
+  parameters:
+    - name: productId
+      in: path
+      required: true
+      description: The favorited product's UUID (favorites are keyed by product, not by favorite id).
+      schema:
+        type: string
+        format: uuid
+  delete:
+    operationId: removeFavorite
+    tags:
+      - Favorites
+    summary: Unfavorite a product
+    description: >-
+      Idempotent - removing a product that is not favorited answers 204 as well
+      (CONVENTIONS.md "Idempotency").
+    x-preisora-status: implemented
+    security:
+      - bearerAuth: []
+    responses:
+      '204':
+        description: Favorite gone (removed now or never present).
+      '400':
+        description: '`productId` is not a well-formed UUID (`code: VALIDATION_FAILED`).'
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/Error.yaml
+      '401':
+        $ref: ../responses/Unauthorized.yaml
+      '429':
+        $ref: ../responses/RateLimited.yaml

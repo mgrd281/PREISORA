@@ -1,0 +1,10 @@
+name: lng
+in: query
+required: true
+description: >-
+  Longitude of the query location (WGS-84 decimal degrees). Requests missing the
+  coordinate pair are rejected with 400 `LOCATION_REQUIRED`.
+schema:
+  type: number
+  minimum: -180
+  maximum: 180

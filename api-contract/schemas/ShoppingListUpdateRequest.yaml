@@ -1,0 +1,8 @@
+title: ShoppingListUpdateRequest
+description: Partial update of a ShoppingList. Omitted fields stay unchanged.
+type: object
+properties:
+  name:
+    type: string
+    minLength: 1
+    maxLength: 120

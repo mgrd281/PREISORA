@@ -1,0 +1,13 @@
+title: DeviceUpdateRequest
+description: Partial device update (token rotation, app update, locale change). Omitted fields stay unchanged.
+type: object
+properties:
+  pushToken:
+    type: string
+    minLength: 1
+  appVersion:
+    type: string
+    minLength: 1
+  locale:
+    type: string
+    pattern: '^[a-z]{2}(-[A-Z]{2})?$'

@@ -1,0 +1,15 @@
+title: RetailerPage
+description: >-
+  Page envelope of Retailers with embedded markets (ADR-0002). The retailer set is
+  small; v1 returns it whole with `nextCursor: null`, `hasMore: false`.
+type: object
+required:
+  - data
+  - pageInfo
+properties:
+  data:
+    type: array
+    items:
+      $ref: ./RetailerWithMarkets.yaml
+  pageInfo:
+    $ref: ./PageInfo.yaml

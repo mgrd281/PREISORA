@@ -1,0 +1,91 @@
+summary: Geo-ranked offers for a product (Page envelope, ADR-0002)
+description: >-
+  Typical `GET /products/{productId}/offers` payload - two fresh offers within radius,
+  best first, one carrying a percentage promotion. Geo lists are capped and return
+  `nextCursor: null`.
+value:
+  data:
+    - id: 9e1c7a30-2b4d-4f68-8a9c-0d1e2f3a4b5c
+      productId: 3fa2d1b8-5c44-4a7e-9b0e-6f2a91c47d55
+      retailerMarketId: 7c3e2f10-9a1b-4d68-8f24-5e6a7b8c9d01
+      storeId: b58f3a24-6d17-4e0b-a92c-1f0e8d7c6b5a
+      price:
+        amountMinor: 119
+        currencyCode: EUR
+      unitPrice:
+        amountMinor: 119
+        currencyCode: EUR
+      unitPriceQuantityText: 1 l
+      isBest: true
+      freshness: fresh
+      observedAt: '2026-08-29T16:20:00Z'
+      validFrom: null
+      validUntil: null
+      promotion: null
+      effectivePrice:
+        amountMinor: 119
+        currencyCode: EUR
+      store:
+        id: b58f3a24-6d17-4e0b-a92c-1f0e8d7c6b5a
+        retailerMarketId: 7c3e2f10-9a1b-4d68-8f24-5e6a7b8c9d01
+        name: Kaufrausch Berlin-Mitte
+        lat: 52.5219
+        lng: 13.4132
+        address:
+          street: Alexanderplatz 3
+          postalCode: '10178'
+          city: Berlin
+          countryCode: DE
+        distanceMeters: 420
+        openingHours:
+          - dayOfWeek: 1
+            opensAt: '08:00'
+            closesAt: '20:00'
+          - dayOfWeek: 2
+            opensAt: '08:00'
+            closesAt: '20:00'
+      distanceMeters: 420
+    - id: 5d2b8c41-7e9f-4a03-b6d5-8c7a9e0f1a2b
+      productId: 3fa2d1b8-5c44-4a7e-9b0e-6f2a91c47d55
+      retailerMarketId: 2f8d4c66-1e3a-4b59-9c77-8a0b1c2d3e4f
+      storeId: c69a4b35-7e28-4f1c-b03d-2a1f9e8d7c6b
+      price:
+        amountMinor: 159
+        currencyCode: EUR
+      unitPrice:
+        amountMinor: 159
+        currencyCode: EUR
+      unitPriceQuantityText: 1 l
+      isBest: false
+      freshness: fresh
+      observedAt: '2026-08-30T07:05:00Z'
+      validFrom: '2026-08-25T00:00:00Z'
+      validUntil: '2026-08-31T23:59:59Z'
+      promotion:
+        id: 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+        type: percentage
+        percentOff: 20
+        amountOff: null
+        requiresLoyaltyCard: false
+        startsAt: '2026-08-25T00:00:00Z'
+        endsAt: '2026-08-31T23:59:59Z'
+      effectivePrice:
+        amountMinor: 127
+        currencyCode: EUR
+      store:
+        id: c69a4b35-7e28-4f1c-b03d-2a1f9e8d7c6b
+        retailerMarketId: 2f8d4c66-1e3a-4b59-9c77-8a0b1c2d3e4f
+        name: PreisPilot Prenzlauer Berg
+        lat: 52.5391
+        lng: 13.4244
+        address:
+          street: Schoenhauser Allee 80
+          postalCode: '10439'
+          city: Berlin
+          countryCode: DE
+        distanceMeters: 1830
+        openingHours: null
+      distanceMeters: 1830
+  pageInfo:
+    nextCursor: null
+    hasMore: false

@@ -1,0 +1,41 @@
+title: User
+description: >-
+  A PREISORA account. `id` is the ONLY primary identity (constitution §11) - sign-in
+  methods (anonymous, email, apple, google) are linked UserIdentity rows resolving to
+  it. `email` is `null` for anonymous-only accounts.
+type: object
+required:
+  - id
+  - email
+  - displayName
+  - countryCode
+  - locale
+  - createdAt
+properties:
+  id:
+    type: string
+    format: uuid
+  email:
+    type:
+      - string
+      - 'null'
+    format: email
+    description: Primary email, or `null` when no email identity is linked yet.
+  displayName:
+    type:
+      - string
+      - 'null'
+    description: User-chosen display name, or `null`.
+  countryCode:
+    type: string
+    pattern: '^[A-Z]{2}$'
+    description: Resolved home market (see CONVENTIONS.md country resolution).
+  locale:
+    type: string
+    pattern: '^[a-z]{2}(-[A-Z]{2})?$'
+    description: BCP-47 locale used for localization precedence.
+    examples:
+      - de-DE
+  createdAt:
+    type: string
+    format: date-time

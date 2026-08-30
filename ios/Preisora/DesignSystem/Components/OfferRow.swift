@@ -26,12 +26,12 @@ struct OfferRow: View {
         VStack(alignment: .leading, spacing: Tokens.Spacing.sm) {
             HStack(alignment: .top, spacing: Tokens.Spacing.sm) {
                 VStack(alignment: .leading, spacing: Tokens.Spacing.xs) {
-                    Text(titleText)
+                    Text(verbatim: titleText)
                         .font(Tokens.Typography.headline)
                         .foregroundStyle(Tokens.Color.textPrimary)
 
                     if let subtitle = subtitleText {
-                        Text(subtitle)
+                        Text(verbatim: subtitle)
                             .font(Tokens.Typography.caption)
                             .foregroundStyle(Tokens.Color.textSecondary)
                     }

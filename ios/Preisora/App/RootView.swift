@@ -12,12 +12,17 @@ import SwiftUI
 @MainActor
 struct RootView: View {
 
-    @Bindable var router: AppRouter
+    // The router is read from the environment rather than stored as a `@Bindable`
+    // property: that is the documented iOS 17 shape, and it keeps `RootView` free of
+    // an initializer parameter. `body` makes a local `@Bindable` copy wherever a
+    // binding (`$router.…`) is actually needed.
+    @Environment(AppRouter.self) private var router
 
     var body: some View {
-        TabView(selection: $router.selectedTab) {
+        @Bindable var router = router
+        return TabView(selection: $router.selectedTab) {
             NavigationStack(path: $router.homePath) {
-                HomeView(router: router)
+                HomeView()
                     .navigationDestination(for: Route.self) { route in
                         RouteDestination(route: route)
                     }
@@ -102,14 +107,14 @@ struct StoreDetailView: View {
                         Task { await load() }
                     }
                 case .loaded(let store):
-                    Text(store.name)
+                    Text(verbatim: store.name)
                         .font(Tokens.Typography.title)
                         .foregroundStyle(Tokens.Color.textPrimary)
-                    Text(store.address.singleLine)
+                    Text(verbatim: store.address.singleLine)
                         .font(Tokens.Typography.body)
                         .foregroundStyle(Tokens.Color.textSecondary)
                     if let distanceMeters = store.distanceMeters {
-                        Text(DistanceFormatting.string(meters: distanceMeters))
+                        Text(verbatim: DistanceFormatting.string(meters: distanceMeters))
                             .font(Tokens.Typography.caption)
                             .foregroundStyle(Tokens.Color.textSecondary)
                     }

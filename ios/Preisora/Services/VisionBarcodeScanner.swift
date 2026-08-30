@@ -39,6 +39,11 @@ struct VisionBarcodeScanner: BarcodeScanning {
 }
 
 /// UIViewControllerRepresentable wrapper around the system data scanner.
+///
+/// `@MainActor` is spelled out rather than left to conformance inference, so the
+/// representable's members and the coordinator's isolation line up identically on
+/// Xcode 15 and Xcode 16.
+@MainActor
 struct DataScannerRepresentable: UIViewControllerRepresentable {
 
     let onScan: (String) -> Void
@@ -80,10 +85,17 @@ struct DataScannerRepresentable: UIViewControllerRepresentable {
         Coordinator(onScan: onScan)
     }
 
-    /// Deliberately NOT `@MainActor`-annotated: VisionKit delivers these callbacks on
-    /// the main thread, and a non-isolated conformance satisfies the delegate whether
-    /// or not the SDK declares it main-actor-isolated. The call site hops to the main
-    /// actor before touching view-model state.
+    /// The coordinator's own state (`onScan`, `isScanning`) is `@MainActor`, because
+    /// that is where it is read and written from: `updateUIViewController` and the
+    /// scan callback both end up touching view state.
+    ///
+    /// The DELEGATE METHODS are explicitly `nonisolated`. `DataScannerViewControllerDelegate`
+    /// has moved between "no isolation" and "main-actor isolated" across SDK versions,
+    /// and a `nonisolated` witness satisfies the requirement either way (the reverse —
+    /// an isolated witness for a non-isolated requirement — does not). Each callback
+    /// therefore extracts plain `String` payloads and hops to the main actor before
+    /// anything main-actor-isolated is touched.
+    @MainActor
     final class Coordinator: NSObject, DataScannerViewControllerDelegate {
 
         private let onScan: (String) -> Void
@@ -93,25 +105,41 @@ struct DataScannerRepresentable: UIViewControllerRepresentable {
             self.onScan = onScan
         }
 
-        func dataScanner(
+        nonisolated func dataScanner(
             _ dataScanner: DataScannerViewController,
             didAdd addedItems: [RecognizedItem],
             allItems: [RecognizedItem]
         ) {
-            forward(addedItems)
+            deliver(Coordinator.barcodePayloads(in: addedItems))
         }
 
-        func dataScanner(
+        nonisolated func dataScanner(
             _ dataScanner: DataScannerViewController,
             didTapOn item: RecognizedItem
         ) {
-            forward([item])
+            deliver(Coordinator.barcodePayloads(in: [item]))
         }
 
-        private func forward(_ items: [RecognizedItem]) {
+        /// `[String]` is `Sendable`, so the hop carries no VisionKit type across it.
+        nonisolated private func deliver(_ payloads: [String]) {
+            guard !payloads.isEmpty else { return }
+            Task { @MainActor in
+                self.forward(payloads)
+            }
+        }
+
+        nonisolated private static func barcodePayloads(in items: [RecognizedItem]) -> [String] {
+            var payloads: [String] = []
             for item in items {
                 guard case .barcode(let barcode) = item else { continue }
                 guard let payload = barcode.payloadStringValue, !payload.isEmpty else { continue }
+                payloads.append(payload)
+            }
+            return payloads
+        }
+
+        private func forward(_ payloads: [String]) {
+            for payload in payloads {
                 onScan(payload)
             }
         }

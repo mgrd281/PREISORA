@@ -22,8 +22,14 @@ struct MapKitService: MapsProviding {
         )
         let mapItem = MKMapItem(placemark: placemark)
         mapItem.name = name
-        mapItem.openInMaps(launchOptions: [
-            MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving
-        ])
+        // `MKMapItem.openMaps(with:launchOptions:)` rather than the instance
+        // `openInMaps(launchOptions:)`, which newer SDKs deprecate. Same behaviour:
+        // hand the destination to the system maps app in driving-directions mode.
+        _ = MKMapItem.openMaps(
+            with: [mapItem],
+            launchOptions: [
+                MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving
+            ]
+        )
     }
 }

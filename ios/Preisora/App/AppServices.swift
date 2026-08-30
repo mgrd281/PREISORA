@@ -26,6 +26,10 @@ struct AppServices {
     let images: any ImageLoading
     let sharing: any Sharing
     let recentScans: RecentScansStore
+    /// True when `api` is wired to the bundled fixtures instead of a backend.
+    /// Read by Settings and by the demo banner — never by networking code, which
+    /// cannot tell the difference and must not try.
+    let isDemoMode: Bool
 
     init(
         config: AppConfig,
@@ -38,7 +42,8 @@ struct AppServices {
         analytics: any AnalyticsTracking,
         images: any ImageLoading,
         sharing: any Sharing,
-        recentScans: RecentScansStore
+        recentScans: RecentScansStore,
+        isDemoMode: Bool = false
     ) {
         self.config = config
         self.api = api
@@ -51,6 +56,7 @@ struct AppServices {
         self.images = images
         self.sharing = sharing
         self.recentScans = recentScans
+        self.isDemoMode = isDemoMode
     }
 
     /// The real graph. Built once in `PreisoraApp`.
@@ -60,9 +66,26 @@ struct AppServices {
     /// question (`DataScannerViewController` is a main-actor type), and this factory
     /// is deliberately non-isolated so it can run anywhere — so the choice belongs
     /// inside the scanner, not here.
-    static func live(config: AppConfig = .resolve()) -> AppServices {
-        let secureStore = KeychainSecureStorage()
-        let api = APIClient(config: config, secureStore: secureStore)
+    ///
+    /// DEMO MODE (`DemoMode.isEnabled`, ON by default on a fresh install) swaps
+    /// exactly two things and nothing else:
+    ///   • the `URLSession` handed to `APIClient` — `DemoBackend.makeSession()`
+    ///     answers every request from `Resources/DemoData/*.json`, so the client,
+    ///     its headers, its decoder, the anonymous-auth bootstrap and the whole
+    ///     `APIError` path still run for real;
+    ///   • the secure store — demo tokens live in memory only, so they can never be
+    ///     mistaken for a real session or outlive the process.
+    /// Every other service is the same object it is in live mode.
+    static func live(
+        config: AppConfig = .resolve(),
+        isDemoMode: Bool = DemoMode.isEnabled()
+    ) -> AppServices {
+        let secureStore: any SecureStoring = isDemoMode
+            ? InMemorySecureStorage()
+            : KeychainSecureStorage()
+        let api = isDemoMode
+            ? APIClient(config: config, secureStore: secureStore, urlSession: DemoBackend.makeSession())
+            : APIClient(config: config, secureStore: secureStore)
 
         return AppServices(
             config: config,
@@ -75,13 +98,16 @@ struct AppServices {
             analytics: ConsoleAnalyticsTracker(config: config),
             images: AsyncImageLoader(),
             sharing: ShareLinkService(),
-            recentScans: RecentScansStore()
+            recentScans: RecentScansStore(),
+            isDemoMode: isDemoMode
         )
     }
 
     /// Inert graph for SwiftUI previews and as the environment default. It still
-    /// points at an `APIClient` (so previews fail like the app does) but stores
-    /// nothing and tracks nothing.
+    /// points at a real `APIClient` (so previews exercise the app's own networking
+    /// code) but stores nothing and tracks nothing. Its session is the DEMO one, so
+    /// previews render the bundled fixtures instead of failing against a backend
+    /// that is not running — `isDemoMode` is `true` here for the same reason.
     static let preview: AppServices = {
         let config = AppConfig(
             apiBaseURL: URL(string: AppConfig.defaultBaseURLString)!,
@@ -94,7 +120,11 @@ struct AppServices {
         let secureStore = InMemorySecureStorage()
         return AppServices(
             config: config,
-            api: APIClient(config: config, secureStore: secureStore),
+            api: APIClient(
+                config: config,
+                secureStore: secureStore,
+                urlSession: DemoBackend.makeSession()
+            ),
             scanner: MockBarcodeScanner(),
             location: MockLocationProvider(),
             maps: MockMapsService(),
@@ -103,7 +133,8 @@ struct AppServices {
             analytics: RecordingAnalyticsTracker(),
             images: MockImageLoader(),
             sharing: ShareLinkService(),
-            recentScans: RecentScansStore()
+            recentScans: RecentScansStore(),
+            isDemoMode: true
         )
     }()
 }

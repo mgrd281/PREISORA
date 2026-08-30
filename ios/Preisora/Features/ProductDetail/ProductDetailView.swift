@@ -40,7 +40,7 @@ struct ProductDetailView: View {
             .padding(Tokens.Spacing.md)
         }
         .background(Tokens.Color.backgroundPrimary)
-        .navigationTitle(Text(viewModel.product?.name ?? L10n.string("product.title")))
+        .navigationTitle(Text(verbatim: viewModel.product?.name ?? L10n.string("product.title")))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
@@ -75,17 +75,17 @@ struct ProductDetailView: View {
                     )
 
                 VStack(alignment: .leading, spacing: Tokens.Spacing.xs) {
-                    Text(product.name)
+                    Text(verbatim: product.name)
                         .font(Tokens.Typography.title)
                         .foregroundStyle(Tokens.Color.textPrimary)
 
                     if !product.subtitleText.isEmpty {
-                        Text(product.subtitleText)
+                        Text(verbatim: product.subtitleText)
                             .font(Tokens.Typography.body)
                             .foregroundStyle(Tokens.Color.textSecondary)
                     }
 
-                    Text(product.gtin)
+                    Text(verbatim: product.gtin)
                         .font(Tokens.Typography.caption.monospacedDigit())
                         .foregroundStyle(Tokens.Color.textSecondary)
                 }
@@ -118,14 +118,14 @@ struct ProductDetailView: View {
             }
 
             if let store = offer.store {
-                Text(store.name)
+                Text(verbatim: store.name)
                     .font(Tokens.Typography.headline)
                     .foregroundStyle(Tokens.Color.textPrimary)
-                Text(store.address.singleLine)
+                Text(verbatim: store.address.singleLine)
                     .font(Tokens.Typography.caption)
                     .foregroundStyle(Tokens.Color.textSecondary)
             } else if let name = viewModel.retailerName(for: offer) {
-                Text(name)
+                Text(verbatim: name)
                     .font(Tokens.Typography.headline)
                     .foregroundStyle(Tokens.Color.textPrimary)
             }
@@ -235,7 +235,7 @@ struct ProductDetailView: View {
             // Minimal token-styled bars; Swift Charts is deliberately deferred.
             ForEach(history.points.suffix(14)) { point in
                 HStack(spacing: Tokens.Spacing.sm) {
-                    Text(point.date)
+                    Text(verbatim: point.date)
                         .font(Tokens.Typography.caption.monospacedDigit())
                         .foregroundStyle(Tokens.Color.textSecondary)
                         .frame(width: 92, alignment: .leading)
@@ -248,7 +248,7 @@ struct ProductDetailView: View {
                     }
                     .frame(height: 10)
 
-                    Text(point.minPrice.formatted())
+                    Text(verbatim: point.minPrice.formatted())
                         .font(Tokens.Typography.caption.monospacedDigit())
                         .foregroundStyle(Tokens.Color.textPrimary)
                 }

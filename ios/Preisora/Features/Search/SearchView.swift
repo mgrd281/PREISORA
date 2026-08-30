@@ -90,11 +90,11 @@ struct ProductSummaryRow: View {
                 .clipShape(RoundedRectangle(cornerRadius: Tokens.Radius.small, style: .continuous))
 
             VStack(alignment: .leading, spacing: Tokens.Spacing.xs) {
-                Text(product.name)
+                Text(verbatim: product.name)
                     .font(Tokens.Typography.headline)
                     .foregroundStyle(Tokens.Color.textPrimary)
                 if !product.subtitleText.isEmpty {
-                    Text(product.subtitleText)
+                    Text(verbatim: product.subtitleText)
                         .font(Tokens.Typography.caption)
                         .foregroundStyle(Tokens.Color.textSecondary)
                 }

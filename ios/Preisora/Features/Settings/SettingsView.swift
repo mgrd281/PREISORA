@@ -8,6 +8,11 @@
 //  hidden so the shape of the account model (§11: linked identities, not a primary
 //  Apple ID) is visible from day one.
 //
+//  It is also the home of the DEMO MODE switch. Demo mode is decided once per
+//  launch (`AppServices.live` builds the whole service graph from it), so the toggle
+//  writes the flag and the app picks it up on the next start — the footnote says so,
+//  and the section keeps showing what the CURRENT process is actually talking to.
+//
 
 import SwiftUI
 import Observation
@@ -44,8 +49,28 @@ struct SettingsView: View {
     @Environment(\.services) private var services
     @State private var viewModel = SettingsViewModel()
 
+    /// The persisted flag, which is what the NEXT launch will use. It can differ from
+    /// `services.isDemoMode` (what this launch is using) until the app restarts.
+    @State private var isDemoModeEnabled = DemoMode.isEnabled()
+
+    /// Names of demo fixtures the bundle is missing. Empty is the healthy answer.
+    @State private var missingFixtures: [String] = []
+
     var body: some View {
         List {
+            if services.isDemoMode {
+                Section {
+                    DemoModeBanner()
+                        .listRowInsets(EdgeInsets(
+                            top: Tokens.Spacing.sm,
+                            leading: Tokens.Spacing.md,
+                            bottom: Tokens.Spacing.sm,
+                            trailing: Tokens.Spacing.md
+                        ))
+                        .listRowBackground(Color.clear)
+                }
+            }
+            demoSection
             backendSection
             featuresSection
             accountSection
@@ -55,11 +80,64 @@ struct SettingsView: View {
         .listStyle(.insetGrouped)
         .navigationTitle(Text("tab.settings"))
         .task {
+            missingFixtures = services.isDemoMode ? DemoBackend.missingFixtures() : []
             await viewModel.load(services: services)
         }
     }
 
     // MARK: - Sections
+
+    /// The demo switch, plus an honest readout of what THIS launch is using.
+    private var demoSection: some View {
+        Section {
+            Toggle(isOn: $isDemoModeEnabled) {
+                Text("settings.demo_mode")
+            }
+            .tint(Tokens.Color.accentPrimary)
+            .onChange(of: isDemoModeEnabled) { _, newValue in
+                DemoMode.setEnabled(newValue)
+            }
+
+            LabeledContent {
+                Text(services.isDemoMode
+                     ? L10n.string("settings.demo_source_fixtures")
+                     : services.config.displayBaseURL)
+                    .font(Tokens.Typography.caption)
+                    .foregroundStyle(Tokens.Color.textSecondary)
+            } label: {
+                Text("settings.demo_data_source")
+            }
+
+            if isDemoModeEnabled != services.isDemoMode {
+                Label {
+                    Text("settings.demo_restart_required")
+                        .font(Tokens.Typography.caption)
+                } icon: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .foregroundStyle(Tokens.Color.warning)
+            }
+
+            // Only reachable if `Resources/DemoData/*.json` did not make it into the
+            // build — surfaced here instead of leaving the app inexplicably empty.
+            if !missingFixtures.isEmpty {
+                Label {
+                    Text(L10n.string(
+                        "settings.demo_fixtures_missing",
+                        missingFixtures.joined(separator: ", ")
+                    ))
+                    .font(Tokens.Typography.caption)
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle")
+                }
+                .foregroundStyle(Tokens.Color.error)
+            }
+        } header: {
+            Text("settings.section.demo")
+        } footer: {
+            Text(L10n.string("settings.demo_footer", services.config.displayBaseURL))
+        }
+    }
 
     private var backendSection: some View {
         Section {
@@ -220,5 +298,42 @@ struct SettingsView: View {
         } label: {
             Text(L10n.string(titleKey))
         }
+    }
+}
+
+
+// MARK: - Demo indicator
+
+/// The "this is not live data" banner.
+///
+/// It lives next to the switch that turns demo mode on, but it is a standalone view
+/// on purpose: dropping `DemoModeBanner()` at the top of any screen (Home, for
+/// instance) labels that screen's content as sample data. Show it only when
+/// `services.isDemoMode` is true.
+@MainActor
+struct DemoModeBanner: View {
+
+    var body: some View {
+        HStack(alignment: .top, spacing: Tokens.Spacing.sm) {
+            Image(systemName: "info.circle.fill")
+                .foregroundStyle(Tokens.Color.accentPrimary)
+
+            VStack(alignment: .leading, spacing: Tokens.Spacing.xs) {
+                Text("demo.banner.title")
+                    .font(Tokens.Typography.headline)
+                    .foregroundStyle(Tokens.Color.textPrimary)
+                Text("demo.banner.message")
+                    .font(Tokens.Typography.caption)
+                    .foregroundStyle(Tokens.Color.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(Tokens.Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Tokens.Color.accentSubtle)
+        .clipShape(RoundedRectangle(cornerRadius: Tokens.Radius.medium, style: .continuous))
+        .accessibilityElement(children: .combine)
     }
 }

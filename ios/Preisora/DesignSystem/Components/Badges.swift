@@ -29,7 +29,7 @@ struct FreshnessBadge: View {
                 .font(Tokens.Typography.caption)
                 .foregroundStyle(Tokens.Color.textSecondary)
             if let observedAt {
-                Text(RelativeDateFormatting.string(for: observedAt))
+                Text(verbatim: RelativeDateFormatting.string(for: observedAt))
                     .font(Tokens.Typography.caption)
                     .foregroundStyle(Tokens.Color.textSecondary)
             }

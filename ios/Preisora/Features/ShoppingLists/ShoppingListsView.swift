@@ -72,7 +72,7 @@ struct ShoppingListsView: View {
             } else {
                 List(lists) { list in
                     VStack(alignment: .leading, spacing: Tokens.Spacing.xs) {
-                        Text(list.name)
+                        Text(verbatim: list.name)
                             .font(Tokens.Typography.headline)
                             .foregroundStyle(Tokens.Color.textPrimary)
                         Text(L10n.string("lists.item_count", String(list.items.count)))

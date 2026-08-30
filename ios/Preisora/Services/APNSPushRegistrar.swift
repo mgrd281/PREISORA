@@ -110,8 +110,8 @@ final class APNSPushRegistrar: PushRegistering {
             }
         }
 
-        await MainActor.run {
-            self.registerForRemoteNotifications()
-        }
+        // `registerForRemoteNotifications()` is `@MainActor`; awaiting it directly is
+        // the hop — no `MainActor.run` closure (and no capture) needed.
+        await registerForRemoteNotifications()
     }
 }

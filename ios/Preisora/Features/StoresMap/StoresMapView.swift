@@ -91,14 +91,14 @@ struct StoresMapView: View {
     private func storeRow(_ store: Store) -> some View {
         HStack(spacing: Tokens.Spacing.md) {
             VStack(alignment: .leading, spacing: Tokens.Spacing.xs) {
-                Text(store.name)
+                Text(verbatim: store.name)
                     .font(Tokens.Typography.headline)
                     .foregroundStyle(Tokens.Color.textPrimary)
-                Text(store.address.singleLine)
+                Text(verbatim: store.address.singleLine)
                     .font(Tokens.Typography.caption)
                     .foregroundStyle(Tokens.Color.textSecondary)
                 if let distanceMeters = store.distanceMeters {
-                    Text(DistanceFormatting.string(meters: distanceMeters))
+                    Text(verbatim: DistanceFormatting.string(meters: distanceMeters))
                         .font(Tokens.Typography.caption)
                         .foregroundStyle(Tokens.Color.textSecondary)
                 }

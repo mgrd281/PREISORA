@@ -33,13 +33,13 @@ struct PriceLabel: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Tokens.Spacing.xs) {
-            Text(price.formatted())
+            Text(verbatim: price.formatted())
                 .font(font)
                 .foregroundStyle(emphasize ? Tokens.Color.accentPrimary : Tokens.Color.textPrimary)
-                .accessibilityLabel(Text(price.formatted()))
+                .accessibilityLabel(Text(verbatim: price.formatted()))
 
             if let strikethrough, strikethrough.amountMinor != price.amountMinor {
-                Text(strikethrough.formatted())
+                Text(verbatim: strikethrough.formatted())
                     .font(Tokens.Typography.caption.monospacedDigit())
                     .foregroundStyle(Tokens.Color.textSecondary)
                     .strikethrough(true, color: Tokens.Color.textSecondary)
@@ -65,7 +65,7 @@ struct UnitPriceLabel: View {
     let quantityText: String?
 
     var body: some View {
-        Text(text)
+        Text(verbatim: text)
             .font(Tokens.Typography.caption)
             .foregroundStyle(Tokens.Color.textSecondary)
     }

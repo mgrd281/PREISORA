@@ -2261,6 +2261,159 @@
           }
         }
       }
+    },
+    "settings.section.demo": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demo-Modus"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demo mode"
+          }
+        }
+      }
+    },
+    "settings.demo_mode": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demo-Modus"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demo mode"
+          }
+        }
+      }
+    },
+    "settings.demo_footer": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Demo-Modus beantwortet die App jede Anfrage aus mitgelieferten Beispieldaten – ohne Backend und ohne Netzwerk. Ausgeschaltet spricht sie mit %@. Die Umschaltung wird erst nach einem Neustart der App wirksam."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In demo mode the app answers every request from bundled sample data — no backend, no network. Switched off it talks to %@. The change only takes effect after you relaunch the app."
+          }
+        }
+      }
+    },
+    "settings.demo_data_source": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenquelle"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data source"
+          }
+        }
+      }
+    },
+    "settings.demo_source_fixtures": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beispieldaten aus dem App-Bundle"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bundled sample data"
+          }
+        }
+      }
+    },
+    "settings.demo_restart_required": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird nach dem nächsten Start der App wirksam."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takes effect the next time you launch the app."
+          }
+        }
+      }
+    },
+    "settings.demo_fixtures_missing": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beispieldaten fehlen in diesem Build: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sample data missing from this build: %@"
+          }
+        }
+      }
+    },
+    "demo.banner.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demo-Modus"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demo mode"
+          }
+        }
+      }
+    },
+    "demo.banner.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Produkte, Preise und Filialen stammen aus mitgelieferten Beispieldaten. Es läuft kein Backend."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All products, prices and stores come from bundled sample data. No backend is running."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

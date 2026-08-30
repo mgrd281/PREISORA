@@ -64,7 +64,7 @@ struct DemoScannerView: View {
                 } label: {
                     HStack(spacing: Tokens.Spacing.sm) {
                         Image(systemName: "barcode")
-                        Text(gtin)
+                        Text(verbatim: gtin)
                             .font(Tokens.Typography.body.monospacedDigit())
                         Spacer()
                         Image(systemName: "chevron.right")

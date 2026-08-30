@@ -85,7 +85,7 @@ struct AlertsView: View {
                 List(alerts) { alert in
                     VStack(alignment: .leading, spacing: Tokens.Spacing.xs) {
                         PriceLabel(price: alert.targetPrice, size: .row)
-                        Text(DistanceFormatting.string(meters: alert.radiusMeters))
+                        Text(verbatim: DistanceFormatting.string(meters: alert.radiusMeters))
                             .font(Tokens.Typography.caption)
                             .foregroundStyle(Tokens.Color.textSecondary)
                     }

@@ -19,8 +19,11 @@ struct PreisoraApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView(router: router)
+            RootView()
                 .environment(\.services, services)
+                // The router travels through the environment (iOS 17 `Observable`
+                // injection) instead of being passed down as a view property.
+                .environment(router)
                 .task {
                     // Anonymous-first: get a session before the user taps anything
                     // user-scoped, so favoriting feels instant (§11).

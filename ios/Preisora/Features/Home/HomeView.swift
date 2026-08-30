@@ -9,13 +9,17 @@ import SwiftUI
 struct HomeView: View {
 
     @Environment(\.services) private var services
-    @Bindable var router: AppRouter
+    // Read from the environment (injected once in `PreisoraApp`) instead of being
+    // stored as a `@Bindable` property; `body` makes the local `@Bindable` copy the
+    // `.sheet(isPresented:)` binding needs.
+    @Environment(AppRouter.self) private var router
     @State private var viewModel = HomeViewModel()
     /// Set by the scanner, consumed after the sheet has actually gone away.
     @State private var pendingGTIN: String?
 
     var body: some View {
-        ScrollView {
+        @Bindable var router = router
+        return ScrollView {
             VStack(alignment: .leading, spacing: Tokens.Spacing.lg) {
                 scanCard
                 backendCard
@@ -33,7 +37,10 @@ struct HomeView: View {
         }
         // Pushing while the sheet is still on screen can drop the navigation, so the
         // scan result is handed over in `onDismiss` instead.
-        .sheet(isPresented: $router.isPresentingScanner, onDismiss: handleScannerDismissed) {
+        .sheet(
+            isPresented: $router.isPresentingScanner,
+            onDismiss: { handleScannerDismissed() }
+        ) {
             ScanView { gtin in
                 pendingGTIN = gtin
                 router.isPresentingScanner = false
@@ -149,15 +156,15 @@ struct HomeView: View {
             Image(systemName: "barcode")
                 .foregroundStyle(Tokens.Color.accentPrimary)
             VStack(alignment: .leading, spacing: Tokens.Spacing.xs) {
-                Text(scan.productName)
+                Text(verbatim: scan.productName)
                     .font(Tokens.Typography.headline)
                     .foregroundStyle(Tokens.Color.textPrimary)
-                Text(scan.gtin)
+                Text(verbatim: scan.gtin)
                     .font(Tokens.Typography.caption.monospacedDigit())
                     .foregroundStyle(Tokens.Color.textSecondary)
             }
             Spacer()
-            Text(RelativeDateFormatting.string(for: scan.scannedAt))
+            Text(verbatim: RelativeDateFormatting.string(for: scan.scannedAt))
                 .font(Tokens.Typography.caption)
                 .foregroundStyle(Tokens.Color.textSecondary)
         }

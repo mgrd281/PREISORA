@@ -1,0 +1,36 @@
+{
+  "$comment": "PREISORA flyer offer import — EDEKA national weekly offers, harvested 2026-08-30 from edeka.de/angebote (retailer's own public page). Prices are the regular offer prices (app-only prices deliberately ignored — they require app registration and are unavailable in some regions). EDEKA pricing is REGIONAL; these are the nationally advertised offers. Valid 31.08.–05.09.2026 unless the row says otherwise.",
+  "schemaVersion": 1,
+  "batches": [
+    {
+      "retailerName": "EDEKA",
+      "retailerSlug": "edeka",
+      "countryCode": "DE",
+      "currencyCode": "EUR",
+      "sourceUrl": "https://www.edeka.de/angebote",
+      "harvestedAt": "2026-08-30",
+      "pricingScope": "market",
+      "offers": [
+        { "name": "Himbeeren", "quantityText": "125 g", "priceMinor": 179, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "Dallmayr Prodomo", "brand": "Dallmayr", "quantityText": "500 g", "priceMinor": 699, "oldPriceMinor": 999, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "albi Fruchtsaft oder Nektar", "brand": "albi", "quantityText": "1 l", "priceMinor": 149, "oldPriceMinor": 249, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "Freixenet Sekt", "brand": "Freixenet", "quantityText": "0,75 l", "priceMinor": 399, "oldPriceMinor": 679, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "Tafeltrauben hell oder rot", "quantityText": "1 kg", "priceMinor": 399, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "Exquisa Frischkäse", "brand": "Exquisa", "quantityText": "175-200 g", "priceMinor": 99, "oldPriceMinor": 191, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "Danone Actimel", "brand": "Danone", "quantityText": "8x100 g", "priceMinor": 222, "oldPriceMinor": 396, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "Melitta Bella Crema", "brand": "Melitta", "quantityText": "1-1,1 kg", "priceMinor": 1349, "oldPriceMinor": 1799, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "Gustavo Gusto Steinofenpizza", "brand": "Gustavo Gusto", "quantityText": "410-510 g", "priceMinor": 369, "oldPriceMinor": 500, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "Pirulo Eis Multipackung", "brand": "Pirulo", "quantityText": "405 ml", "priceMinor": 222, "oldPriceMinor": 399, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "Red Bull Energy Drink", "brand": "Red Bull", "quantityText": "0,25 l", "priceMinor": 99, "oldPriceMinor": 149, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "Mozzarella di Bufala", "quantityText": "210 g", "priceMinor": 149, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "Grana Padano", "quantityText": "200 g", "priceMinor": 333, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "Pasta", "quantityText": "500 g", "priceMinor": 89, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "Natives Olivenöl extra", "quantityText": "500 ml", "priceMinor": 799, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "Pesto", "quantityText": "190 g", "priceMinor": 219, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "Antipasti", "quantityText": "150-230 g", "priceMinor": 199, "validFrom": "2026-08-31", "validUntil": "2026-09-05" },
+        { "name": "Salatgurke", "quantityText": "Stück", "priceMinor": 79, "validFrom": "2026-09-03", "validUntil": "2026-09-05" },
+        { "name": "Leerdammer Scheiben oder gerieben", "brand": "Leerdammer", "quantityText": "100-160 g", "priceMinor": 139, "oldPriceMinor": 269, "validFrom": "2026-09-03", "validUntil": "2026-09-05" }
+      ]
+    }
+  ]
+}

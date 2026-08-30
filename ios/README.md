@@ -4,35 +4,54 @@ Native SwiftUI app (Swift 5.10, iOS 17+, **zero third-party dependencies**) agai
 platform-neutral backend in [`../backend`](../backend), built to the contract in
 [`../api-contract`](../api-contract).
 
-> **Honest disclaimer, read this first.** These sources were authored on Linux, with
-> **no Xcode and no Swift compiler** — nothing here has ever been compiled. The API
-> surface was kept deliberately conservative (no macros beyond `@Observable`, no typed
-> throws, no Swift 6 strict concurrency, basic MapKit only) precisely to keep the
-> first-build fix-up small, but **expect a short fix-up pass on your Mac**: a handful
-> of signature or isolation adjustments, most likely around VisionKit's scanner
-> delegate and SwiftUI toolbar/`@Bindable` details. Everything else — the Domain
-> models, the error contract, the deep-link grammar, the tokens — was verified against
-> the contract and the design spec by hand.
+> **What has and has not been verified.** These sources were authored on Linux without
+> Xcode. Since then a real **Swift 6.0.3 compiler** was run against them here: all 66
+> files parse, and the entire Foundation layer — every `Domain` model, `APIClient`,
+> `APIError`, `Route`, `DemoURLProtocol` — **type-checks and passes 78 unit tests**,
+> including tests that decode real captured backend responses into the real models.
+> What still cannot be checked without Xcode are the **SwiftUI view bodies** (Apple
+> frameworks do not exist on Linux), so a short first-build fix-up is still possible —
+> most likely a type-check-time or `MapContentBuilder` detail, not a broken contract.
+> See §7 for the ranked list of remaining unknowns.
 
 ---
 
-## 1 · Three steps on a Mac
+## 1 · Two steps on a Mac (Xcode only — no Homebrew, no Docker)
 
 ```bash
-brew install xcodegen         # 1 — tested with XcodeGen 2.x (ADR-0004)
-cd ios && xcodegen generate   # 2 — writes Preisora.xcodeproj (gitignored)
-open Preisora.xcodeproj       # 3 — select the Preisora scheme, ⌘R
+cd ios
+curl -L -o xcodegen.zip https://github.com/yonaskolb/XcodeGen/releases/latest/download/xcodegen.zip
+unzip -q xcodegen.zip && ./xcodegen/bin/xcodegen generate    # writes Preisora.xcodeproj
+open Preisora.xcodeproj                                      # select the Preisora scheme, ⌘R
 ```
 
-`project.yml` is the source of truth for the project; `Preisora.xcodeproj` is
-generated and never committed. Re-run `xcodegen generate` after adding files or
+*(If you do have Homebrew, `brew install xcodegen && xcodegen generate` is equivalent —
+ADR-0004 pins XcodeGen 2.x.)* `project.yml` is the source of truth; `Preisora.xcodeproj`
+is generated and never committed. Re-run `xcodegen generate` after adding files or
 changing build settings.
 
 **Toolchain.** Recommended: **Xcode 16 or newer** (iOS 18 SDK), where SwiftUI's
-`View`/`App` protocols are `@MainActor`-isolated protocol-wide. The feature view
-structs additionally carry explicit `@MainActor` annotations (a no-op on Xcode 16+),
-so the sources are also annotated to build on **Xcode 15.3+** (iOS 17 SDK) — but
-that path is untested.
+`View`/`App` protocols are `@MainActor`-isolated protocol-wide. The view structs also
+carry explicit `@MainActor` annotations (a no-op on Xcode 16+), so the sources are
+annotated to build on **Xcode 15.3+** (iOS 17 SDK) too — that path is untested.
+
+## 2 · What you can do on first run — no backend needed
+
+The app ships in **Demo Mode** (on by default, Settings ▸ *Demo-Modus*). It serves
+responses captured verbatim from the real running backend, *below* `APIClient` — so
+headers, JSON decoding, the error envelope, anonymous auth and refresh all execute the
+real production code path. A banner marks it as demo data.
+
+Walk the core journey in the simulator:
+
+| step | how |
+|---|---|
+| Scan | Home ▸ *Scannen*. The simulator has no camera, so use **manual GTIN entry** or the demo buttons. |
+| Demo GTINs | `4012345000016` Vollmilch · `4012345000023` Butter · `4012345000030` Nuss-Nougat-Creme · `4012345000047` Mehl · `4012345000054` Eier |
+| Compare prices | The product screen ranks real offers, highlights the best one, and shows freshness + promotion badges. |
+| Not-found path | Any other valid GTIN (e.g. `4099999000005`) returns the real `PRODUCT_NOT_FOUND` envelope, so you can see the error state. |
+| Stores map | Product ▸ map — Berlin store pins with distances (location permission optional; there is a Berlin fallback). |
+| Search / favourites | Search accepts `milch`, `butter`, …; favourites persist for the session. |
 
 Run the tests with `⌘U`, or headless:
 
@@ -41,30 +60,19 @@ xcodebuild test -project Preisora.xcodeproj -scheme Preisora \
   -destination 'platform=iOS Simulator,name=iPhone 15'
 ```
 
-## 2 · Pointing the app at a backend
+## 3 · Optional: run against the live backend
 
-The base URL comes from the scheme environment variable **`PREISORA_API_BASE_URL`**,
-default `http://localhost:3000/api/v1` (the local docker-compose stack). Settings →
-*Backend* shows the URL the running app resolved.
-
-Bring the backend up first:
+Requires **Docker Desktop** and **Node 22** on the Mac. Turn *Demo-Modus* off in
+Settings (relaunch the app), then:
 
 ```bash
 cd ../backend
+cp .env.example .env
 docker compose up -d --wait
-npm run db:migrate && npm run seed && npm run start:dev
+npm install && npm run db:migrate && npm run seed && npm run start:dev
 ```
 
-To change the target: Xcode → *Product ▸ Scheme ▸ Edit Scheme… ▸ Run ▸ Arguments ▸
-Environment Variables* → `PREISORA_API_BASE_URL`.
-
-**App Transport Security.** `Info.plist` sets `NSAllowsLocalNetworking`, which covers
-`http://localhost`. Pointing a **physical device** at your Mac over plain HTTP
-(`http://192.168.x.x:3000/...`) is *not* covered by that exception — either terminate
-TLS in front of the backend, tunnel it, or add a temporary
-`NSExceptionDomains` entry to `project.yml` while developing.
-
-## 3 · What actually works
+## 4 · What actually works
 
 ### In the Simulator (no camera)
 
@@ -95,7 +103,7 @@ automatically when `isSupported && isAvailable`. EAN-13 / EAN-8 / UPC-E / Code12
 ITF-14 are recognized; the payload goes through the same GTIN pre-flight as manual
 entry. Real Core Location replaces the Berlin fallback.
 
-## 4 · What is stubbed
+## 5 · What is stubbed
 
 | Area | State |
 |---|---|
@@ -108,7 +116,7 @@ entry. Real Core Location replaces the Berlin fallback.
 | **Analytics** | `ConsoleAnalyticsTracker` (os.Logger) only. Names and properties are the real taxonomy; only the sink is a stub. |
 | **User preferences** | `UserPreferences` is modelled; its endpoints answer 501 so nothing calls them yet. |
 
-## 5 · Layout
+## 6 · Layout
 
 ```
 ios/
@@ -147,30 +155,45 @@ ios/
   `design-spec/tokens.json`; `Tokens.version` must equal the JSON `version` (a unit
   test pins it). Feature code never writes a hex value.
 
-## 6 · Known first-build friction
+## 7 · Known first-build friction
 
-Ranked by how likely they are to need a touch-up on the Mac:
+**What is already settled.** A real Swift 6.0.3 compiler was run against these sources
+on Linux: all 66 files parse, and everything that does not need an Apple framework
+(`Domain/`, `Networking/` including `APIClient` and `DemoURLProtocol`, `Route`,
+`AnalyticsEvent`, `RecentScansStore`, `ShareLinkService`) type-checks and passes
+**78 unit tests** — the four original suites plus suites that decode real captured
+backend responses into the real models and exercise the whole demo routing table
+through an actual `URLSession` round trip. The VisionKit coordinator isolation, the
+`@Bindable` pattern and the deprecated `openInMaps` call listed in earlier revisions of
+this file have all been fixed and their replacements were validated against
+framework-free replicas under both `-swift-version 5` and `-swift-version 6`.
 
-1. **VisionKit delegate isolation** — `DataScannerViewControllerDelegate` is
-   main-actor-annotated in recent SDKs. `DataScannerRepresentable.Coordinator` is
-   deliberately *non*-isolated (a wider implementation satisfies a narrower
-   requirement). If your SDK disagrees, add `@MainActor` to the `Coordinator` class.
-   `dismantleUIViewController` is intentionally not implemented for the same reason.
-2. **Xcode 15 (iOS 17 SDK) actor isolation** — on Xcode 16+ SwiftUI's `View` protocol
-   is `@MainActor` protocol-wide, so the explicit `@MainActor` on every feature view
-   struct (and `RootView.swift`) is a no-op there. On Xcode 15.3+ those annotations
-   are what lets the explicit view inits (`ProductDetailView(reference:)`,
-   `StoresMapView(productId:)`) call `@MainActor` view-model initializers and lets
-   the non-`body` helper properties read the `@Observable` `@MainActor` view models.
-   That toolchain is annotated for but untested.
-3. **`@Bindable` in `RootView`/`HomeView`** — `@Bindable var router: AppRouter` as a
-   stored view property is the documented iOS 17 pattern; if it complains, switch to
-   `@Environment(AppRouter.self)` plus a local `@Bindable var router = router` in
-   `body`.
-4. **`MKMapItem.openInMaps(launchOptions:)`** is deprecated in newer SDKs — a warning,
-   not an error.
+**What remains unverified: the SwiftUI view bodies.** They cannot be type-checked
+without Apple's frameworks. Ranked by how likely they are to need a touch-up:
+
+1. **`ProductDetailView` type-check time** — `body`/`historyBody` nest a
+   `GeometryReader` with `CGFloat` arithmetic in a `ViewBuilder`. The likely symptom is
+   *"unable to type-check this expression in reasonable time"*, not a hard error; the
+   fix is to annotate the intermediate values or split the helper further.
+2. **`Map` / `Marker` / `UserAnnotation` in `StoresMapView`** — believed correct for
+   iOS 17, but `MapContentBuilder` cannot be checked here. `Marker(store.name, …)`
+   relies on the `StringProtocol` overload.
+3. **`MKMapItem.openMaps(with:launchOptions:)`** — deprecated again on the iOS 26 SDK
+   in favour of the `from:` variants. A warning, never an error.
+4. **`@Environment(AppRouter.self)`** is now a *runtime* contract: the non-optional form
+   traps if the value is missing. It is injected on `RootView` in `PreisoraApp`, which
+   covers every descendant.
 5. **`InfoPlist.xcstrings`** is hand-written. If Xcode does not pick up the localized
    permission strings, the German defaults in `project.yml` still ship correctly.
 6. **AppIcon** is an empty 1024 placeholder set — expect an asset-catalog *warning*,
    not a failure. Drop a real 1024×1024 PNG into
    `Preisora/Resources/Assets.xcassets/AppIcon.appiconset/` and add its `filename`.
+7. **Demo fixtures bundling** — XcodeGen puts `Resources/DemoData/*.json` into the
+   resources phase automatically. If they ever fail to copy, the app says so plainly
+   (Settings shows a red *"Beispieldaten fehlen in diesem Build"* row naming the files)
+   rather than failing mysteriously; the fix is in `project.yml`, adding
+   `{path: Preisora/Resources/DemoData, buildPhase: resources}` alongside an
+   `excludes:` on the main `Preisora` source entry.
+
+If the build does error, paste the Xcode output back into the session — the failure
+surface is now small and concentrated in these files.

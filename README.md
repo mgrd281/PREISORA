@@ -56,15 +56,19 @@ npm run bundle    # -> dist/openapi.bundled.{yaml,json}
 npm run typegen   # -> backend/src/generated/api-types.ts
 ```
 
-### iOS (on a Mac)
+### iOS (on a Mac — Xcode only, no Homebrew or Docker required)
 
 ```bash
-brew install xcodegen
-cd ios && xcodegen generate && open Preisora.xcodeproj
+cd ios
+curl -L -o xcodegen.zip https://github.com/yonaskolb/XcodeGen/releases/latest/download/xcodegen.zip
+unzip -q xcodegen.zip && ./xcodegen/bin/xcodegen generate
+open Preisora.xcodeproj        # ⌘R on an iPhone simulator
 ```
 
-See [`ios/README.md`](ios/README.md) for the simulator demo flow (manual GTIN entry + mock
-scanner against the seeded backend).
+The app starts in **Demo Mode**, serving responses captured from the real backend below
+`APIClient` — so the whole scan → compare → map journey works with no server running.
+Enter a demo GTIN such as `4012345000016`. See [`ios/README.md`](ios/README.md) for the
+full journey, the live-backend path, and what remains unverified.
 
 ## Ground rules (short form)
 

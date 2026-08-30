@@ -77,3 +77,11 @@ export type OpeningHourDto = NonNullable<StoreDto['openingHours']>[number];
  * literal still matches the contract-generated type.
  */
 export type Conforms<TContract, TActual extends TContract> = TActual;
+
+/**
+ * `openapi-typescript` renders a property with a `default` as REQUIRED (the server
+ * always sends it back), but the corresponding REQUEST field is optional for the
+ * caller. This helper marks exactly those fields optional so a request DTO class can
+ * still `implements` its contract type and keep every other field checked.
+ */
+export type WithOptionalDefaults<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;

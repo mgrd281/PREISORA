@@ -35,15 +35,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     const { status, envelope } = this.toEnvelope(exception);
 
-    if (status >= 500) {
-      this.logger.error(
-        `${request.method} ${request.originalUrl} -> ${status} ${envelope.code}`,
-        exception instanceof Error ? exception.stack : String(exception),
-      );
+    const line = `${request.method} ${request.originalUrl} -> ${status} ${envelope.code}`;
+    // An AppException is always a deliberate answer (a 501 stub included), so only an
+    // UNEXPECTED failure is worth an error-level entry with its stack.
+    if (status >= 500 && !(exception instanceof AppException)) {
+      this.logger.error(line, exception instanceof Error ? exception.stack : String(exception));
     } else {
-      this.logger.debug?.(
-        `${request.method} ${request.originalUrl} -> ${status} ${envelope.code}`,
-      );
+      this.logger.debug?.(line);
     }
 
     if (response.headersSent) return;

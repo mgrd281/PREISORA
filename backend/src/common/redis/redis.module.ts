@@ -1,8 +1,10 @@
 import { Global, Inject, Module, OnApplicationShutdown } from '@nestjs/common';
 import Redis from 'ioredis';
 import { AppConfigService } from '../../config/app-config.service';
+import { RedisCacheService } from './redis-cache.service';
+import { REDIS } from './redis.tokens';
 
-export const REDIS = Symbol('PREISORA_REDIS');
+export { REDIS };
 
 /**
  * Redis is load-bearing in three places (ADR-0001):
@@ -23,8 +25,9 @@ export const REDIS = Symbol('PREISORA_REDIS');
           enableOfflineQueue: true,
         }),
     },
+    RedisCacheService,
   ],
-  exports: [REDIS],
+  exports: [REDIS, RedisCacheService],
 })
 export class RedisModule implements OnApplicationShutdown {
   constructor(@Inject(REDIS) private readonly redis: Redis) {}

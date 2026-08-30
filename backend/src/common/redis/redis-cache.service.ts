@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import Redis from 'ioredis';
-import { REDIS } from './redis.module';
+import { REDIS } from './redis.tokens';
 
 /**
  * Thin JSON read-through cache. Every operation degrades to a cache MISS if Redis

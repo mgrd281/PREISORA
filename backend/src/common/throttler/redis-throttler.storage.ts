@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ThrottlerStorage } from '@nestjs/throttler';
 import { ThrottlerStorageRecord } from '@nestjs/throttler/dist/throttler-storage-record.interface';
 import Redis from 'ioredis';
-import { REDIS } from '../redis/redis.module';
+import { REDIS } from '../redis/redis.tokens';
 
 /**
  * Redis-backed throttler storage — this is what makes `RATE_LIMITED` a real answer

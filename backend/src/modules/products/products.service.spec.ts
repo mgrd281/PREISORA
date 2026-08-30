@@ -199,9 +199,13 @@ describe('ProductsService.getByGtin lookup chain', () => {
               returning: async () => {
                 attempt += 1;
                 if (attempt === 1) {
-                  throw Object.assign(new Error('duplicate key'), {
-                    code: '23505',
-                    constraint: 'products_slug_key',
+                  // Exactly how drizzle surfaces it: a wrapper Error whose `cause` is
+                  // the pg error carrying the SQLSTATE.
+                  throw Object.assign(new Error('Failed query: insert into "products" ...'), {
+                    cause: Object.assign(new Error('duplicate key value'), {
+                      code: '23505',
+                      constraint: 'products_slug_key',
+                    }),
                   });
                 }
                 return [persisted];
@@ -216,6 +220,23 @@ describe('ProductsService.getByGtin lookup chain', () => {
       const dto = await service.getByGtin(GTIN, CTX);
       expect(dto.slug).toBe('ferrero-nutella-500g-402222');
       expect(slugs).toEqual(['ferrero-nutella-500g', 'ferrero-nutella-500g-402222']);
+    });
+
+    it('rethrows a database failure that is NOT a slug collision', async () => {
+      const { db } = fakeDb({ selects: [[]] });
+      (db as unknown as { insert: unknown }).insert = () => ({
+        values: () => ({
+          onConflictDoNothing: () => ({
+            returning: async () => {
+              throw Object.assign(new Error('connection terminated'), { code: '57P01' });
+            },
+          }),
+        }),
+      });
+      const { cache } = fakeCache();
+      const service = new ProductsService(db, cache, config(), stubProvider(async () => DISCOVERED));
+
+      await expect(service.getByGtin(GTIN, CTX)).rejects.toThrow('connection terminated');
     });
 
     it('returns the winner when a concurrent scan inserted the same GTIN first', async () => {

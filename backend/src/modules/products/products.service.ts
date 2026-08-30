@@ -32,9 +32,19 @@ const PRODUCT_COLUMNS = {
 /** PostgreSQL `unique_violation`. */
 const UNIQUE_VIOLATION = '23505';
 
+/**
+ * Drizzle WRAPS driver errors ("Failed query: insert into ...") and hangs the original
+ * `pg` error off `cause`, so the SQLSTATE is never on the object that is thrown. The
+ * chain is walked rather than the top level inspected — getting this wrong turns a
+ * routine slug collision into a 5xx, which is exactly what it must never be.
+ */
 function isUniqueViolation(error: unknown, constraint: string): boolean {
-  const candidate = error as { code?: unknown; constraint?: unknown } | null;
-  return candidate?.code === UNIQUE_VIOLATION && candidate?.constraint === constraint;
+  for (let current: unknown = error, depth = 0; current && depth < 5; depth += 1) {
+    const candidate = current as { code?: unknown; constraint?: unknown; cause?: unknown };
+    if (candidate.code === UNIQUE_VIOLATION && candidate.constraint === constraint) return true;
+    current = candidate.cause;
+  }
+  return false;
 }
 
 @Injectable()

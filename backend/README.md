@@ -36,6 +36,9 @@ curl -s "$BASE/products/$PID/offers?lat=52.52&lng=13.405&radiusMeters=5000"
 curl -s "$BASE/products/$PID/price-history?range=30d"
 curl -s $BASE/capabilities
 curl -s $BASE/products/by-gtin/4012345000017        # 400 INVALID_GTIN
+
+# Any REAL barcode resolves through the product data provider (§22) and is persisted:
+curl -s $BASE/products/by-gtin/4008400402222        # Nutella 500 g, with images
 ```
 
 `docker compose up -d --wait` matters: the `postgis` image restarts its server once
@@ -183,6 +186,8 @@ logged, never serialized.
 2. The 60 s feature-flag cache.
 3. A short-TTL read-through cache on `GET /products/by-gtin/{gtin}` (§35) — the scan
    funnel hits the same few GTINs repeatedly.
+4. A short-TTL **negative** cache for product-provider misses, so a repeatedly-scanned
+   unknown barcode does not hammer the upstream catalogue.
 
 Cache reads and writes degrade to a miss on failure; a Redis hiccup must never turn
 the scan funnel into a 5xx.
@@ -214,6 +219,106 @@ business logic** — offers carry their own market's currency, and the request c
 resolves country/locale per request (`?locale` > user profile > `Accept-Language` >
 config default, echoed back in `Content-Language`).
 
+## Product data provider (§22)
+
+Scanning a barcode is only useful if any real barcode resolves. `GET
+/products/by-gtin/{gtin}` therefore runs a chain, not a table lookup:
+
+```
+validate GTIN -> Redis -> local catalogue -> provider -> persist -> return
+```
+
+Checksum validation stays first, so `INVALID_GTIN` is never a database or network
+round trip. When the local catalogue does not know the GTIN, a **product data
+provider** is asked; a hit is normalized, persisted as an ordinary `products` row and
+returned like any other product, so every subsequent scan of that barcode is a local
+read.
+
+The provider is a **seam, not a call site**. `ProductProvider` (`lookupByGtin(gtin,
+ctx)`) is bound to the `PRODUCT_PROVIDER` DI token in `products.module.ts`; a second
+catalog provider — or a paid price provider later — is added by extending that
+factory, and no caller changes. `OpenFoodFactsProvider` and `NullProductProvider` are
+the two implementations today.
+
+### Normalization is the adapter's whole job
+
+Open Food Facts vocabulary exists in exactly one folder
+(`src/modules/products/providers/openfoodfacts/`); everything downstream sees the
+platform-neutral `ProviderProduct`.
+
+| Field | Rule |
+|---|---|
+| `name` | `product_name_{request language}` -> `product_name` -> `product_name_{product's own lang}`. Blank strings count as absent. **No usable name = NOT FOUND** — a nameless product is never persisted. The request language comes from `RequestContext`, so `?locale=en-GB` genuinely returns the English name (§24). |
+| `brand` | First entry of the comma-separated `brands` string, trimmed; `null` when absent. |
+| `quantityText` | OFF `quantity`, verbatim (`"500g"`). |
+| `images` | The front image of the chosen language, else another language's front image. Each rendition pairs a ready-made `selected_images.front.{thumb,small,display}` URL with its **exact** `w`/`h` from `images.front_{lang}.sizes` (`100`/`200`/`400` — verified empirically; the boxes are not square, Nutella's 400 rendition is 269x400). The original is derived from the display URL's size token and included only when `sizes.full` gives its exact dimensions. A rendition whose URL **or** dimensions cannot be determined is dropped — the contract requires all three `ImageAsset` fields. Nothing determinable -> `null`, never `[]`. |
+| `slug` | `slugify(brand + name + quantity)`, with deterministic fallbacks `-{last 6 of GTIN}` then `-{full GTIN}` then `product-{GTIN}`. The insert walks the candidates on a `products_slug_key` violation, so a collision costs one round trip and **never a 500**. |
+| `countryCode` | From the request context, never a literal (§24). |
+
+Prices, offers, retailers and stores are **never** invented. A discovered product
+legitimately has no offers, so `GET /products/{id}/offers` answers 404
+`NO_CURRENT_PRICES` for it — that is the honest answer, not a gap.
+
+### Failure behaviour: a provider problem is never a 5xx
+
+A network error, a timeout (`OPENFOODFACTS_TIMEOUT_MS`, default 2500 ms), a non-200,
+an unparseable body and `status: 0` are all the same thing: **a lookup miss**. The
+request answers 404 `PRODUCT_NOT_FOUND`, the failure is logged at `warn`, and no
+upstream status body ever reaches a client or a log line. The seeded catalogue and
+every already-discovered product keep working while the provider is down.
+
+### Caching
+
+Both halves of the Redis layer matter on the scan funnel (§35):
+
+- **positive**: the existing read-through cache on the resolved `Product`
+  (`GTIN_CACHE_TTL_SECONDS`);
+- **negative**: a provider MISS is remembered for
+  `PRODUCT_PROVIDER_NEGATIVE_CACHE_TTL_SECONDS` (default 300), so a repeatedly-scanned
+  unknown barcode does not hammer the upstream. It is checked *after* the catalogue
+  read, so a barcode that has since been seeded is never hidden by it.
+
+### Provenance (server-side only)
+
+Migration `0001_product_provenance` adds `products.source`
+(`seed | openfoodfacts | manual`, default `seed`, CHECK-constrained), `source_ref` (the
+OFF code) and `source_synced_at`. **None of it is on the wire**: the OpenAPI contract
+is frozen and `Product` has no `source` field. Exposing it additively is a documented
+follow-up, not part of this change.
+
+### Configuration
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PRODUCT_PROVIDER` | `openfoodfacts` | `openfoodfacts` or `none`. Anything else disables discovery rather than failing the boot. |
+| `PRODUCT_PROVIDER_NEGATIVE_CACHE_TTL_SECONDS` | `300` | How long a provider miss is remembered. |
+| `OPENFOODFACTS_BASE_URL` | `https://world.openfoodfacts.org` | |
+| `OPENFOODFACTS_TIMEOUT_MS` | `2500` | A lookup sits on the scan funnel, so it fails fast. |
+| `OPENFOODFACTS_USER_AGENT` | `PREISORA/1.0 (https://preisora.de)` | OFF's usage terms ask every client to identify itself descriptively. Put a real contact URL here before deploying. |
+
+Under `NODE_ENV=test` the provider is **forced** to `none` regardless of the
+environment, so no test run can depend on — or reach — a third-party service. The
+provider e2e injects a stub that replays recorded payloads
+(`test/fixtures/openfoodfacts/`) through the real normalizer instead.
+
+### Licence obligation — Open Food Facts data is ODbL
+
+Product names, brands, quantities and images returned by `OpenFoodFactsProvider` come
+from the [Open Food Facts](https://world.openfoodfacts.org) database, which is licensed
+under the **Open Database License (ODbL) v1.0**; the individual product images are
+licensed **CC BY-SA**. This is not optional housekeeping:
+
+- **Attribution is required wherever the data is displayed.** Any client showing a
+  product whose row has `source = 'openfoodfacts'` must credit Open Food Facts and
+  link to the ODbL — e.g. "Product data from Open Food Facts, ODbL".
+- **Share-alike applies to derived databases.** Publishing a modified version of the
+  database carries the same licence forward.
+- Do not hammer the API, and keep the descriptive `User-Agent` — both are part of OFF's
+  usage terms.
+
+The backend records provenance so this is answerable per row; the app-side attribution
+surface is the client's responsibility.
+
 ## Seed data
 
 `npm run seed` is idempotent (catalog rows upsert on natural keys; price rows tagged
@@ -239,9 +344,15 @@ No real trademarks, no scraped prices.
 ## Tests
 
 ```bash
-npm test          # unit: gtin, price ranking, optimizer, flag scopes, cursors, error filter
+npm test          # unit: gtin, price ranking, optimizer, flag scopes, cursors, error filter,
+                  #       OFF normalization (recorded fixtures) and the by-gtin lookup chain
 npm run test:e2e  # supertest over the whole app graph
 ```
+
+Neither suite performs a third-party network call: the provider is forced off under
+`NODE_ENV=test`, the normalizer is tested against recorded payloads in
+`test/fixtures/openfoodfacts/`, and the provider e2e injects a stub over the
+`PRODUCT_PROVIDER` token.
 
 The e2e suite **drops and recreates** `preisora_test`, migrates and seeds it, and
 flushes a **separate Redis logical database** (`redis://localhost:6379/1`) before
@@ -258,11 +369,11 @@ diverged from production wiring would prove nothing.
 | `GET/PATCH /users/me/preferences` | 501 | §12 cross-device sync seam; `UserPreferences` is final, the storage is not built. |
 | Optimizer strategy `balanced` | 501 | Part of the canonical enum; `cheapest_total` and `fewest_stores` are real. |
 | APNs / FCM delivery | structured log | `NotificationDeliveryProvider` is the seam; real delivery needs credentials the project does not have yet. |
-| Provider price ingestion / scraping | — | `offers.source` (`seed \| manual \| provider`) is the seam. |
+| Provider price ingestion / scraping | — | `offers.source` (`seed \| manual \| provider`) is the seam. The **product data** provider is real; no provider supplies *prices*. |
 | Search engine | trigram ILIKE | The contract is engine-agnostic; a real engine is a drop-in. |
 | Cohort assignment / percentage rollout | — | `feature_flags.cohort` and `users.cohort` exist; nothing assigns cohorts yet. |
 | Multibuy / loyalty promotion math | surfaced, not evaluated | Explicitly what the contract says. |
-| Product images | `null` | §34 seam; the nullable field ships, the pipeline does not. |
+| Product images | populated for provider-discovered products, `null` for seed rows | §34: `ImageAsset[]` with exact pixel dimensions now ships for anything the product data provider resolved. The fictional seed catalogue has no imagery, and there is no own-CDN/resize pipeline — provider URLs are passed through. |
 | `Idempotency-Key` header | accepted, ignored | `x-preisora-status: planned`. v1 relies on natural-key idempotency. |
 | BullMQ job queue, observation-table partitioning | — | Not needed at this data volume. |
 

@@ -55,6 +55,7 @@ healthchecks (`pg_isready`, `redis-cli ping`) are what make `--wait` meaningful.
 | `npm run db:migrate` | applies the SQL migrations (drizzle-kit format + journal) |
 | `npm run db:generate` | authors a NEW migration from the Drizzle schema |
 | `npm run seed` | idempotent demo data (safe to re-run) |
+| `npm run import:flyers -- <file>` | flyer-offer import pipeline (see "Flyer-offer import") |
 | `npm test` | unit suite — pure logic, no database, no Docker |
 | `npm run test:e2e` | supertest against a real, freshly created `preisora_test` DB |
 
@@ -318,6 +319,104 @@ licensed **CC BY-SA**. This is not optional housekeeping:
 
 The backend records provenance so this is answerable per row; the app-side attribution
 surface is the client's responsibility.
+
+## Flyer-offer import (§22)
+
+Weekly flyer prices are ingested by a standalone pipeline — no Nest container, **no
+HTTP surface** (the OpenAPI contract is frozen; drafts and imports are invisible on
+the wire):
+
+```bash
+npm run import:flyers -- data/flyer-imports/2026-W36.json
+```
+
+### Import file format (`data/flyer-imports/*.json`)
+
+Provider-neutral (§24): the file carries facts transcribed from a retailer's **own
+public offer page**, and nothing in the pipeline assumes a country, currency or
+chain. Shape (validated by `src/import/flyer-import-file.ts`, the authoritative
+contract):
+
+```jsonc
+{
+  "schemaVersion": 1,
+  "batches": [{
+    "retailerName": "ALDI SÜD",         // nominative use: factual price data
+    "retailerSlug": "aldi-sued",
+    "countryCode": "DE", "currencyCode": "EUR",
+    "locale": "de-DE",                   // optional; defaults to the configured locale
+    "sourceUrl": "https://…/angebote",  // where the batch was harvested
+    "harvestedAt": "2026-08-30",
+    "pricingScope": "market",           // one price for the whole chain → offers.store_id NULL
+    "offers": [{
+      "name": "Farmer Macadamia gesalzen",
+      "brand": "Farmer",                 // optional; without it a row can never auto-match
+      "quantityText": "125 g",
+      "priceMinor": 299,
+      "oldPriceMinor": 349,              // optional crossed-out price
+      "validFrom": "2026-09-04",        // required for kind "weekly"
+      "validUntil": "2026-09-09",       // optional
+      "kind": "weekly",                  // or "permanent_reduction" (no validity window)
+      "gtin": "4061458056557"            // optional pre-resolved GTIN (checksum-verified)
+    }]
+  }]
+}
+```
+
+### Matching rules — and THE safety rule
+
+Product matching is server intelligence (§22) and lives in `src/import/matcher.ts` +
+`src/import/quantity.ts` (pure, unit-tested against recorded payloads). The rules are
+**constants in the matcher, not configuration** — env sprawl would only invite
+loosening them:
+
+1. A row with a `gtin` is checksum-verified and linked directly.
+2. Otherwise Open Food Facts is searched (`cgi/search.pl`, ~10 req/min — the client
+   spaces requests 7 s apart and retries 429/5xx with backoff). A match is accepted
+   ONLY when **both** gates pass:
+   - **brand**: case-/whitespace-/diacritic-insensitive containment against the
+     candidate's brand list;
+   - **quantity**: exact equality after unit normalization (`130 g == 130g`,
+     `1,5 l == 1500 ml`); an unparseable pack size is never a wildcard.
+3. More than one distinct GTIN passing both gates → **refused** (`ambiguous_gtins`;
+   the batch country in `countries_tags` is a bonus tiebreaker, never a gate). Size
+   variants with none matching (B-ready 22 g/44 g/220 g/330 g vs a flyer's 132 g) →
+   refused (`quantity_mismatch`).
+
+**The safety rule: a price is never attached to a product without a confident
+match.** A missing offer is a gap; a wrong price on a scan kills the product's
+credibility. Expect a minority of flyer rows to match — that is the honest outcome.
+
+### The review queue (`flyer_offer_drafts`)
+
+EVERY harvested row lands in `flyer_offer_drafts` (migration 0002) with the flyer's
+verbatim facts, `match_status` (`pending | matched | rejected`) and a
+machine-readable `match_reason`. Confident matches are ALSO upserted into `offers`
+(`source = 'provider'`, `store_id NULL` + `retailer_market_id` — the market-wide
+price shape) plus a `price_observations` row when the price actually changed.
+Drafts are review-queue data for a future curation surface; a reviewer's `rejected`
+verdict survives re-imports. Nothing of this is on the wire.
+
+Idempotency: offers upsert on the market-wide natural key (product, market), drafts
+on (market, name, quantity); re-running the same file converges — same row counts,
+no duplicate observations.
+
+### Retailer / market / store provisioning
+
+Unknown retailers are created as `Retailer` → `RetailerMarket` (country/currency
+from the batch, §25). Store locations are attempted with **one Overpass API call per
+chain** (mirrors tried with a short timeout). When Overpass is unreachable — as it
+is through some egress proxies — the pipeline falls back to **three clearly-labeled
+representative locations per chain**: named "… (Beispiel-Standort n)", street
+literally `Beispielstandort`, `external_ref` prefixed `demo-location`. No real
+street address is ever fabricated. Real chain names on factual price data are
+nominative use — standard for price comparison.
+
+**Attribution:** store data fetched via Overpass is © OpenStreetMap contributors,
+licensed ODbL 1.0 (openstreetmap.org/copyright) — any surface displaying those
+stores must say so. Matching uses Open Food Facts search data (ODbL, see above);
+recorded test payloads under `test/fixtures/openfoodfacts-search/` carry the same
+licence.
 
 ## Seed data
 

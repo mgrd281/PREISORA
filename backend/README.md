@@ -394,8 +394,11 @@ verbatim facts, `match_status` (`pending | matched | rejected`) and a
 machine-readable `match_reason`. Confident matches are ALSO upserted into `offers`
 (`source = 'provider'`, `store_id NULL` + `retailer_market_id` — the market-wide
 price shape) plus a `price_observations` row when the price actually changed.
-Drafts are review-queue data for a future curation surface; a reviewer's `rejected`
-verdict survives re-imports. Nothing of this is on the wire.
+Drafts are review-queue data for a future curation surface, with stable verdicts: a
+reviewer's `rejected` survives re-imports, a `matched` draft is never downgraded by
+a later unmatched decision (its offer still stands), and a transient
+`search_failed` never overwrites an existing verdict. Nothing of this is on the
+wire.
 
 Idempotency: offers upsert on the market-wide natural key (product, market), drafts
 on (market, name, quantity); re-running the same file converges — same row counts,

@@ -427,7 +427,14 @@ async function upsertOffer(
   }
 }
 
-/** Draft upsert on the natural key. A reviewer's `rejected` verdict is never undone. */
+/**
+ * Draft upsert on the natural key. Review-queue stability rules:
+ * - a reviewer's `rejected` verdict is never undone by a re-import;
+ * - a `matched` draft is never downgraded by a later unmatched decision — its
+ *   `offers` row still stands, and the draft must keep saying why;
+ * - a transient `search_failed` never overwrites an existing draft's verdict at
+ *   all: infrastructure trouble is not new information about the product.
+ */
 async function upsertDraft(
   db: Db,
   marketId: string,
@@ -439,7 +446,12 @@ async function upsertDraft(
 ): Promise<void> {
   const quantityText = offer.quantityText ?? null;
   const [existing] = await db
-    .select({ id: flyerOfferDrafts.id, matchStatus: flyerOfferDrafts.matchStatus })
+    .select({
+      id: flyerOfferDrafts.id,
+      matchStatus: flyerOfferDrafts.matchStatus,
+      matchReason: flyerOfferDrafts.matchReason,
+      matchedProductId: flyerOfferDrafts.matchedProductId,
+    })
     .from(flyerOfferDrafts)
     .where(
       and(
@@ -470,14 +482,24 @@ async function upsertDraft(
   };
 
   if (existing) {
-    const keepRejected = existing.matchStatus === 'rejected';
+    const transientFailure = decision.status === 'unmatched' && decision.reason === 'search_failed';
+    const keepVerdict =
+      existing.matchStatus === 'rejected' ||
+      (existing.matchStatus === 'matched' && decision.status !== 'matched') ||
+      transientFailure;
     await db
       .update(flyerOfferDrafts)
-      .set({
-        ...values,
-        matchStatus: keepRejected ? 'rejected' : values.matchStatus,
-        updatedAt: deps.now(),
-      })
+      .set(
+        keepVerdict
+          ? {
+              ...values,
+              matchStatus: existing.matchStatus,
+              matchReason: existing.matchReason,
+              matchedProductId: existing.matchedProductId,
+              updatedAt: deps.now(),
+            }
+          : { ...values, updatedAt: deps.now() },
+      )
       .where(eq(flyerOfferDrafts.id, existing.id));
   } else {
     await db.insert(flyerOfferDrafts).values(values);

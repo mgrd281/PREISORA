@@ -18,14 +18,15 @@ import SwiftUI
 
 struct MockBarcodeScanner: BarcodeScanning {
 
-    /// Fictional, checksum-valid demo GTINs. `4012345678901` is the one used in the
-    /// contract's own example payloads (api-contract/examples/product.yaml).
+    /// Fictional, checksum-valid demo GTINs — the first five `SEED_PRODUCTS` of
+    /// `backend/src/seed/seed-data.ts`: milk, butter, nut-nougat cream, flour and
+    /// free-range eggs.
     static let demoGTINs: [String] = [
-        "4012345678901",
         "4012345000016",
         "4012345000023",
         "4012345000030",
-        "4012345000047"
+        "4012345000047",
+        "4012345000054"
     ]
 
     /// There is no camera behind this scanner — reporting `false` keeps the

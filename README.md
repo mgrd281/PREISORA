@@ -14,7 +14,7 @@ later on the same backend. The founding architecture is fixed in
 | Directory | What it is | Runs where |
 |---|---|---|
 | [`backend/`](backend/) | NestJS platform-neutral API (`/api/v1`), PostgreSQL/PostGIS + Redis, seeded demo data, unit + e2e tests | any Linux/macOS with Docker + Node 22 |
-| [`ios/`](ios/) | Native SwiftUI app skeleton (iOS 17+, zero third-party deps), XcodeGen project | macOS with Xcode 15+ |
+| [`ios/`](ios/) | Native SwiftUI app skeleton (iOS 17+, zero third-party deps), XcodeGen project | macOS, Xcode 16+ recommended (15.3+ annotated, untested) |
 | [`api-contract/`](api-contract/) | **Canonical** OpenAPI 3.1 contract (design-first, ADR-0003), Redocly lint + bundle + typegen | headless |
 | [`design-spec/`](design-spec/) | Platform-neutral design tokens (W3C DTCG) + per-platform mapping rules | n/a (spec) |
 | [`docs/`](docs/) | Constitution, domain glossary, ADRs, deep-link grammar, analytics taxonomy | n/a (docs) |
@@ -32,15 +32,17 @@ docker compose up -d --wait          # postgis + redis, healthchecked
 npm install
 npm run db:migrate
 npm run seed                          # fictional German demo retailers & products
-npm run dev                           # API on http://localhost:3000/api/v1
+npm run start:dev                     # API on http://localhost:3000/api/v1
 ```
 
 Smoke test the scan journey:
 
 ```bash
-curl -s localhost:3000/api/v1/products/by-gtin/4012345678901 | jq .
+curl -s localhost:3000/api/v1/products/by-gtin/4012345000016 | jq .   # seeded demo milk
 curl -s "localhost:3000/api/v1/products/<id>/offers?lat=52.52&lng=13.405&radiusMeters=5000" | jq .
 ```
+
+Substitute `<id>` with the `id` field returned by the first call.
 
 Tests: `npm test` (unit) · `npm run test:e2e` (contract e2e against real Postgres).
 

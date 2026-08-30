@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+@MainActor
 struct ProductDetailView: View {
 
     @Environment(\.services) private var services

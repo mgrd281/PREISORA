@@ -9,6 +9,7 @@
 import SwiftUI
 import MapKit
 
+@MainActor
 struct StoresMapView: View {
 
     @Environment(\.services) private var services

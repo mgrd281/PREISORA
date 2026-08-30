@@ -38,6 +38,7 @@ final class SettingsViewModel {
     }
 }
 
+@MainActor
 struct SettingsView: View {
 
     @Environment(\.services) private var services

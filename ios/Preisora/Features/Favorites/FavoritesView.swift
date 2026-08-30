@@ -5,6 +5,7 @@
 
 import SwiftUI
 
+@MainActor
 struct FavoritesView: View {
 
     @Environment(\.services) private var services

@@ -381,13 +381,13 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "z. B. 4012345678901"
+            "value": "z. B. 4012345000016"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "e.g. 4012345678901"
+            "value": "e.g. 4012345000016"
           }
         }
       }
@@ -2109,7 +2109,7 @@
         }
       }
     },
-    "error.list_item_not_found": {
+    "error.shopping_list_item_not_found": {
       "extractionState": "manual",
       "localizations": {
         "de": {
@@ -2173,6 +2173,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "That email address is already registered."
+          }
+        }
+      }
+    },
+    "error.invalid_credentials": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-Mail oder Passwort ist falsch."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incorrect email or password."
+          }
+        }
+      }
+    },
+    "error.invalid_refresh_token": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your session has expired. Please sign in again."
+          }
+        }
+      }
+    },
+    "error.route_not_found": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Funktion ist in deiner App-Version nicht verfügbar."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This feature is not available in your version of the app."
           }
         }
       }

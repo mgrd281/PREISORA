@@ -41,6 +41,7 @@ final class AlertsViewModel {
     }
 }
 
+@MainActor
 struct AlertsView: View {
 
     @Environment(\.services) private var services

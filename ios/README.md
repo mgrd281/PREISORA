@@ -28,6 +28,12 @@ open Preisora.xcodeproj       # 3 — select the Preisora scheme, ⌘R
 generated and never committed. Re-run `xcodegen generate` after adding files or
 changing build settings.
 
+**Toolchain.** Recommended: **Xcode 16 or newer** (iOS 18 SDK), where SwiftUI's
+`View`/`App` protocols are `@MainActor`-isolated protocol-wide. The feature view
+structs additionally carry explicit `@MainActor` annotations (a no-op on Xcode 16+),
+so the sources are also annotated to build on **Xcode 15.3+** (iOS 17 SDK) — but
+that path is untested.
+
 Run the tests with `⌘U`, or headless:
 
 ```bash
@@ -78,8 +84,8 @@ TLS in front of the backend, tunnel it, or add a temporary
 
 > **The demo GTINs must match the backend seed.** They live in one place:
 > `Preisora/Services/Mocks/MockBarcodeScanner.swift` → `MockBarcodeScanner.demoGTINs`.
-> They are fictional codes in the `4012345…` range with valid GS1 check digits
-> (`4012345678901` is the one used in the contract's own example payloads). If
+> They are fictional codes in the `4012345…` range with valid GS1 check digits — the
+> first five `SEED_PRODUCTS` of `backend/src/seed/seed-data.ts`. If
 > `npm run seed` changes, update that array.
 
 ### On a device (camera)
@@ -150,14 +156,21 @@ Ranked by how likely they are to need a touch-up on the Mac:
    deliberately *non*-isolated (a wider implementation satisfies a narrower
    requirement). If your SDK disagrees, add `@MainActor` to the `Coordinator` class.
    `dismantleUIViewController` is intentionally not implemented for the same reason.
-2. **`@Bindable` in `RootView`/`HomeView`** — `@Bindable var router: AppRouter` as a
+2. **Xcode 15 (iOS 17 SDK) actor isolation** — on Xcode 16+ SwiftUI's `View` protocol
+   is `@MainActor` protocol-wide, so the explicit `@MainActor` on every feature view
+   struct (and `RootView.swift`) is a no-op there. On Xcode 15.3+ those annotations
+   are what lets the explicit view inits (`ProductDetailView(reference:)`,
+   `StoresMapView(productId:)`) call `@MainActor` view-model initializers and lets
+   the non-`body` helper properties read the `@Observable` `@MainActor` view models.
+   That toolchain is annotated for but untested.
+3. **`@Bindable` in `RootView`/`HomeView`** — `@Bindable var router: AppRouter` as a
    stored view property is the documented iOS 17 pattern; if it complains, switch to
    `@Environment(AppRouter.self)` plus a local `@Bindable var router = router` in
    `body`.
-3. **`MKMapItem.openInMaps(launchOptions:)`** is deprecated in newer SDKs — a warning,
+4. **`MKMapItem.openInMaps(launchOptions:)`** is deprecated in newer SDKs — a warning,
    not an error.
-4. **`InfoPlist.xcstrings`** is hand-written. If Xcode does not pick up the localized
+5. **`InfoPlist.xcstrings`** is hand-written. If Xcode does not pick up the localized
    permission strings, the German defaults in `project.yml` still ship correctly.
-5. **AppIcon** is an empty 1024 placeholder set — expect an asset-catalog *warning*,
+6. **AppIcon** is an empty 1024 placeholder set — expect an asset-catalog *warning*,
    not a failure. Drop a real 1024×1024 PNG into
    `Preisora/Resources/Assets.xcassets/AppIcon.appiconset/` and add its `filename`.

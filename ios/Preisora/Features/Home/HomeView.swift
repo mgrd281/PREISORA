@@ -5,6 +5,7 @@
 
 import SwiftUI
 
+@MainActor
 struct HomeView: View {
 
     @Environment(\.services) private var services

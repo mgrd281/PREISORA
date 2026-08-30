@@ -35,6 +35,7 @@ final class ShoppingListsViewModel {
     }
 }
 
+@MainActor
 struct ShoppingListsView: View {
 
     @Environment(\.services) private var services

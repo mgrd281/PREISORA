@@ -5,6 +5,7 @@
 
 import SwiftUI
 
+@MainActor
 struct SearchView: View {
 
     @Environment(\.services) private var services
@@ -77,6 +78,7 @@ struct SearchView: View {
 }
 
 /// Compact product row shared by Search and Favorites.
+@MainActor
 struct ProductSummaryRow: View {
 
     let product: Product

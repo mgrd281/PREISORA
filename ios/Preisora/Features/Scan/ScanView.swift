@@ -6,6 +6,7 @@
 
 import SwiftUI
 
+@MainActor
 struct ScanView: View {
 
     @Environment(\.services) private var services

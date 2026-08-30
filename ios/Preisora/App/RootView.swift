@@ -9,6 +9,7 @@
 
 import SwiftUI
 
+@MainActor
 struct RootView: View {
 
     @Bindable var router: AppRouter
@@ -62,6 +63,7 @@ struct RootView: View {
 
 /// Maps a `Route` to its screen. Reserved deep links land on a graceful placeholder
 /// instead of crashing (docs/deep-links.md).
+@MainActor
 struct RouteDestination: View {
 
     let route: Route
@@ -81,6 +83,7 @@ struct RouteDestination: View {
 }
 
 /// Minimal store screen behind `https://preisora.de/store/{storeId}`.
+@MainActor
 struct StoreDetailView: View {
 
     @Environment(\.services) private var services
@@ -163,6 +166,7 @@ struct StoreDetailView: View {
 }
 
 /// Grammar that is fixed but not yet implemented — never a crash.
+@MainActor
 struct ReservedDeepLinkView: View {
 
     let reserved: ReservedDeepLink

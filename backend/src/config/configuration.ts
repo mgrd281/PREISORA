@@ -16,6 +16,16 @@ function str(value: string | undefined, fallback: string): string {
   return value === undefined || value.trim() === '' ? fallback : value;
 }
 
+/** Catalog providers this build knows how to construct. */
+export const PRODUCT_PROVIDER_KINDS = ['openfoodfacts', 'none'] as const;
+export type ProductProviderKind = (typeof PRODUCT_PROVIDER_KINDS)[number];
+
+/** An unrecognised value disables discovery rather than failing the boot. */
+function providerKind(value: string | undefined): ProductProviderKind {
+  const candidate = str(value, 'openfoodfacts') as ProductProviderKind;
+  return PRODUCT_PROVIDER_KINDS.includes(candidate) ? candidate : 'none';
+}
+
 export interface AppConfig {
   env: string;
   isTest: boolean;
@@ -42,6 +52,21 @@ export interface AppConfig {
     maxRadiusMeters: number;
     geoResultLimit: number;
     gtinCacheTtlSeconds: number;
+  };
+  /**
+   * Catalog provider used to resolve a scanned GTIN that is not in the local
+   * catalogue (constitution §22). `none` disables discovery entirely.
+   */
+  productProvider: {
+    kind: ProductProviderKind;
+    /** How long a provider MISS is remembered, so an unknown barcode is not re-asked. */
+    negativeCacheTtlSeconds: number;
+  };
+  openFoodFacts: {
+    baseUrl: string;
+    timeoutMs: number;
+    /** Open Food Facts asks every client to identify itself descriptively. */
+    userAgent: string;
   };
   featureFlags: { cacheTtlSeconds: number };
   throttle: { ttlSeconds: number; limit: number };
@@ -77,6 +102,17 @@ export function buildConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       maxRadiusMeters: int(env.MAX_RADIUS_METERS, 50000),
       geoResultLimit: int(env.GEO_RESULT_LIMIT, 50),
       gtinCacheTtlSeconds: int(env.GTIN_CACHE_TTL_SECONDS, 60),
+    },
+    productProvider: {
+      // Under NODE_ENV=test the provider is FORCED off: no test run may depend on,
+      // or hit, a third-party network service.
+      kind: nodeEnv === 'test' ? 'none' : providerKind(env.PRODUCT_PROVIDER),
+      negativeCacheTtlSeconds: int(env.PRODUCT_PROVIDER_NEGATIVE_CACHE_TTL_SECONDS, 300),
+    },
+    openFoodFacts: {
+      baseUrl: str(env.OPENFOODFACTS_BASE_URL, 'https://world.openfoodfacts.org'),
+      timeoutMs: int(env.OPENFOODFACTS_TIMEOUT_MS, 2500),
+      userAgent: str(env.OPENFOODFACTS_USER_AGENT, 'PREISORA/1.0 (https://preisora.de)'),
     },
     featureFlags: { cacheTtlSeconds: int(env.FEATURE_FLAG_CACHE_TTL_SECONDS, 60) },
     throttle: {

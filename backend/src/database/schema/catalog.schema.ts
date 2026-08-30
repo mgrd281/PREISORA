@@ -29,6 +29,13 @@ export interface OpeningHour {
   closesAt: string;
 }
 
+/**
+ * Where a catalog row came from (server-side provenance only — NOT on the wire; the
+ * OpenAPI contract is frozen and `Product` has no `source` field).
+ */
+export const productSources = ['seed', 'openfoodfacts', 'manual'] as const;
+export type ProductSource = (typeof productSources)[number];
+
 export const products = pgTable(
   'products',
   {
@@ -46,6 +53,12 @@ export const products = pgTable(
     unitPriceQuantityText: text('unit_price_quantity_text'),
     images: jsonb('images').$type<ProductImage[] | null>(),
     countryCode: char('country_code', { length: 2 }).notNull(),
+    /** Provenance: which catalogue this row was discovered in. */
+    source: text('source').$type<ProductSource>().notNull().default('seed'),
+    /** The record's id at that source (the OFF code). `null` for seeded rows. */
+    sourceRef: text('source_ref'),
+    /** When the row was last reconciled with its source. */
+    sourceSyncedAt: timestamp('source_synced_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

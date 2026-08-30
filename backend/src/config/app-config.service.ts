@@ -34,6 +34,14 @@ export class AppConfigService {
     return this.config.alerts;
   }
 
+  get productProvider(): AppConfig['productProvider'] {
+    return this.config.productProvider;
+  }
+
+  get openFoodFacts(): AppConfig['openFoodFacts'] {
+    return this.config.openFoodFacts;
+  }
+
   get isTest(): boolean {
     return this.config.isTest;
   }

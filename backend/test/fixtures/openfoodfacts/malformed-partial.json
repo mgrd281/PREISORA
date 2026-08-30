@@ -1,0 +1,30 @@
+{
+  "code": "4006381333931",
+  "product": {
+    "brands": "   ,  Acme Foods , Acme Deutschland  ",
+    "code": "4006381333931",
+    "images": {
+      "front_de": {
+        "sizes": {
+          "100": { "h": 100 },
+          "200": { "h": 200, "w": "not-a-number" },
+          "400": { "h": 400, "w": 300 }
+        }
+      },
+      "front_xx": { "sizes": null }
+    },
+    "lang": "de",
+    "product_name": "   ",
+    "product_name_de": "",
+    "quantity": "   ",
+    "selected_images": {
+      "front": {
+        "display": { "de": "https://images.openfoodfacts.org/images/products/400/638/133/3931/front_de.7.400.jpg" },
+        "small": { "de": null },
+        "thumb": {}
+      }
+    }
+  },
+  "status": 1,
+  "status_verbose": "product found"
+}

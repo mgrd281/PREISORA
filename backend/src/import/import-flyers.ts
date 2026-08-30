@@ -78,7 +78,8 @@ const DEMO_CITY = 'München';
 
 export interface FlyerImportDeps {
   db: Db;
-  search(terms: string): Promise<SearchCandidate[]>;
+  /** `null` = search unavailable after retries (≠ an empty result). */
+  search(terms: string): Promise<SearchCandidate[] | null>;
   lookupProduct(gtin: string, locale: string): Promise<ProviderProduct | null>;
   planStores(batch: FlyerBatch, batchIndex: number): Promise<StoreProvisioningPlan>;
   now(): Date;
@@ -255,6 +256,15 @@ async function matchOffer(
     );
   }
   const candidates = await deps.search(buildSearchTerms(offer));
+  if (candidates === null) {
+    // NOT the same as "no hits": the draft must say the truth so a later re-import
+    // (which is idempotent) can pick the row up again.
+    return {
+      status: 'unmatched',
+      reason: 'search_failed',
+      detail: 'catalog search unavailable after retries; re-run the import later',
+    };
+  }
   return decideMatch(
     {
       name: offer.name,

@@ -42,15 +42,19 @@ export class OffSearchClient {
 
   constructor(private readonly options: OffSearchClientOptions) {}
 
-  /** `cgi/search.pl` free-text search, first page only. `[]` on persistent failure. */
-  async search(terms: string): Promise<SearchCandidate[]> {
+  /**
+   * `cgi/search.pl` free-text search, first page only. `[]` means the catalog
+   * answered "no hits"; `null` means the search itself failed after every retry —
+   * the two must stay distinguishable so a draft can honestly say which it was.
+   */
+  async search(terms: string): Promise<SearchCandidate[] | null> {
     const url = new URL('cgi/search.pl', this.base());
     url.searchParams.set('search_terms', terms);
     url.searchParams.set('json', '1');
     url.searchParams.set('page_size', '10');
     url.searchParams.set('fields', SEARCH_FIELDS);
     const payload = await this.request<OffSearchResponse>(url, `search "${terms}"`);
-    return payload?.products ?? [];
+    return payload === null ? null : (payload.products ?? []);
   }
 
   /**

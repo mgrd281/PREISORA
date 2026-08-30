@@ -154,7 +154,7 @@ describe('flyer import pipeline (e2e, offline)', () => {
     expect(pending).toHaveLength(15);
     for (const draft of pending) {
       expect(draft.matchedProductId).toBeNull();
-      expect(draft.matchReason).toMatch(/^(no_brand|no_result|brand_mismatch|quantity_mismatch|ambiguous_gtins|invalid_gtin):/);
+      expect(draft.matchReason).toMatch(/^(no_brand|no_result|brand_mismatch|quantity_mismatch|ambiguous_gtins|invalid_gtin|search_failed):/);
     }
     // The two sharp cases the matcher must refuse:
     expect(pending.find((d) => d.name === 'Ferrero B-ready')?.matchReason).toContain('quantity_mismatch');

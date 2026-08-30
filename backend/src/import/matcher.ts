@@ -59,7 +59,8 @@ export type UnmatchedReason =
   | 'brand_mismatch' // results exist, none carries the flyer's brand
   | 'quantity_mismatch' // brand matches exist, but no size agrees (e.g. 22g/44g/220g vs 132g)
   | 'ambiguous_gtins' // >1 distinct GTIN passes every gate — refusing to guess
-  | 'invalid_gtin'; // a pre-resolved GTIN in the import row failed its checksum
+  | 'invalid_gtin' // a pre-resolved GTIN in the import row failed its checksum
+  | 'search_failed'; // the catalog search was unavailable after every retry
 
 /** Lowercase, strip diacritics, collapse every non-alphanumeric run to one space. */
 export function normalizeBrandText(value: string): string {

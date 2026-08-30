@@ -32,6 +32,39 @@ describe('cursor encode/decode', () => {
       }
     },
   );
+
+  describe('sortKey: timestamp', () => {
+    it('accepts a millisecond toISOString() key and a full-microsecond key', () => {
+      for (const sortKey of ['2026-08-30T12:00:00.123Z', '2026-08-30T12:00:00.123456Z']) {
+        const decoded = decodeCursor(encodeCursor({ sortKey, id: ID }), { sortKey: 'timestamp' });
+        expect(decoded).toEqual({ sortKey, id: ID });
+      }
+    });
+
+    it.each([
+      // A /search cursor (sortKey = product name) replayed against a timestamp endpoint.
+      'Vollmilch 3,5%',
+      // Shape-valid but not a real instant — would still raise 22008 in Postgres.
+      '2026-13-01T00:00:00Z',
+      // `Date.parse` rolls this over to Mar 3; Postgres would reject it.
+      '2026-02-31T00:00:00Z',
+      // Not UTC-normalized: never minted by this API.
+      '2026-08-30T12:00:00.123+02:00',
+    ])('rejects non-timestamp sortKey %s with VALIDATION_FAILED', (sortKey) => {
+      expect.assertions(2);
+      try {
+        decodeCursor(encodeCursor({ sortKey, id: ID }), { sortKey: 'timestamp' });
+      } catch (error) {
+        expect(error).toBeInstanceOf(AppException);
+        expect((error as AppException).code).toBe('VALIDATION_FAILED');
+      }
+    });
+
+    it('still accepts any string under the default text shape', () => {
+      const cursor = { sortKey: 'Vollmilch 3,5%', id: ID };
+      expect(decodeCursor(encodeCursor(cursor), { sortKey: 'text' })).toEqual(cursor);
+    });
+  });
 });
 
 describe('page envelopes', () => {

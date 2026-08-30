@@ -19,6 +19,7 @@ import type {
 } from '../../common/api/schemas';
 import { ReqContext } from '../../common/context/req-context.decorator';
 import { RequestContext } from '../../common/context/request-context';
+import { AppException } from '../../common/errors/app-exception';
 import { wholePage } from '../../common/pagination/page';
 import { ParseUuidPipe } from '../../common/validation/uuid.pipe';
 import { AppConfigService } from '../../config/app-config.service';
@@ -124,6 +125,13 @@ export class ShoppingListsController {
     @Body() body: OptimizeDto,
     @ReqContext() ctx: RequestContext,
   ): Promise<OptimizationResultDto> {
+    // A MISSING coordinate pair is LOCATION_REQUIRED (the client has no location yet),
+    // not VALIDATION_FAILED — the same distinction `parseGeoQuery` draws for the
+    // query-string endpoints. Out-of-range values still fail DTO validation as 400
+    // VALIDATION_FAILED before this runs.
+    if (body.lat == null || body.lng == null) {
+      throw new AppException('LOCATION_REQUIRED', { required: ['lat', 'lng'] });
+    }
     const items = await this.lists.itemsForOptimizer(userId, listId);
     return this.optimizer.optimizeList(items, {
       strategy: body.strategy ?? 'cheapest_total',

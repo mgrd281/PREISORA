@@ -40,6 +40,8 @@ export class FavoriteCreateDto implements FavoriteCreateRequestDto {
 interface FavoriteRow extends ProductRow {
   favoriteId: string;
   favoriteCreatedAt: Date;
+  /** Full-microsecond ISO text of `favoriteCreatedAt` — the keyset cursor key. */
+  favoriteCreatedAtCursor: string;
 }
 
 function toFavoriteDto(row: FavoriteRow): FavoriteDto {
@@ -62,6 +64,10 @@ export class FavoritesService {
     return {
       favoriteId: favorites.id,
       favoriteCreatedAt: favorites.createdAt,
+      // The cursor key needs the FULL microsecond precision of the column: a JS
+      // `Date` truncates to milliseconds, and a truncated key in the `<` predicate
+      // would skip rows sharing the boundary millisecond across pages.
+      favoriteCreatedAtCursor: sql<string>`to_char(${favorites.createdAt} at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`,
       id: products.id,
       gtin: products.gtin,
       slug: products.slug,
@@ -89,7 +95,11 @@ export class FavoritesService {
       limit = parsed;
     }
     const cursor =
-      typeof rawCursor === 'string' && rawCursor.trim() !== '' ? decodeCursor(rawCursor) : null;
+      typeof rawCursor === 'string' && rawCursor.trim() !== ''
+        ? // The sort key is cast `::timestamptz` below, so its shape must be
+          // validated here — a foreign cursor must fail as 400, not as a SQL error.
+          decodeCursor(rawCursor, { sortKey: 'timestamp' })
+        : null;
 
     const after = cursor
       ? sql` AND (${favorites.createdAt}, ${favorites.id}) < (${cursor.sortKey}::timestamptz, ${cursor.id}::uuid)`
@@ -104,7 +114,7 @@ export class FavoritesService {
       .limit(limit + 1)) as FavoriteRow[];
 
     const page = cursorPage(rows, limit, (row) => ({
-      sortKey: row.favoriteCreatedAt.toISOString(),
+      sortKey: row.favoriteCreatedAtCursor,
       id: row.favoriteId,
     }));
     return { data: page.data.map(toFavoriteDto), pageInfo: page.pageInfo };

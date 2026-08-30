@@ -171,6 +171,33 @@ describe('rankOffers — market-wide vs store-specific override', () => {
     expect(ranked.map((o) => o.id)).toEqual(['offer-market']);
   });
 
+  it('stale store-specific offers on every in-radius store do not veto a fresh market-wide price', () => {
+    // Both of market A's in-radius stores carry ONLY stale store-specific offers.
+    // Those rows are dropped from the response, so they must not count as "covering"
+    // their stores — the fresh market-wide price is still the price a shopper pays.
+    const ranked = rank([
+      candidate({
+        id: 'offer-stale-a1',
+        storeId: STORE_A1,
+        priceAmountMinor: 99,
+        observedAt: new Date(NOW.getTime() - 200 * HOUR),
+        store: store(STORE_A1, MARKET_A, 100),
+      }),
+      candidate({
+        id: 'offer-stale-a2',
+        storeId: STORE_A2,
+        priceAmountMinor: 109,
+        observedAt: new Date(NOW.getTime() - 200 * HOUR),
+        store: store(STORE_A2, MARKET_A, 200),
+      }),
+      candidate({ id: 'offer-market-fresh', storeId: null, priceAmountMinor: 129 }),
+    ]);
+
+    expect(ranked.map((o) => o.id)).toEqual(['offer-market-fresh']);
+    expect(ranked[0].isBest).toBe(true);
+    expect(hasFreshOffer(ranked)).toBe(true);
+  });
+
   it('keeps an aging offer but never lets it be best', () => {
     const ranked = rank([
       candidate({

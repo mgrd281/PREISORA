@@ -1,4 +1,6 @@
 import { INestApplication } from '@nestjs/common';
+import { sql } from 'drizzle-orm';
+import { DATABASE, Database } from '../src/database/database.module';
 import {
   API,
   AuthSession,
@@ -117,6 +119,74 @@ describe('user data: favorites, devices, alerts, shopping lists (e2e)', () => {
         .expect(200);
       expect(second.body.data).toHaveLength(1);
       expect(second.body.pageInfo.hasMore).toBe(false);
+    });
+
+    it('rejects a /search cursor replayed against /favorites as 400 VALIDATION_FAILED', async () => {
+      // A /search cursor carries the product NAME as its sort key; /favorites casts
+      // its sort key ::timestamptz. The mismatch must be a contracted 400, not a
+      // database error surfacing as 503.
+      const search = await http(app)
+        .get(`${API}/search/products`)
+        .query({ q: 'a', limit: 2 })
+        .expect(200);
+      expect(typeof search.body.pageInfo.nextCursor).toBe('string');
+
+      const { body } = await http(app)
+        .get(`${API}/favorites`)
+        .query({ cursor: search.body.pageInfo.nextCursor })
+        .set('Authorization', session.auth)
+        .expect(400);
+      expectErrorEnvelope(body, 'VALIDATION_FAILED');
+    });
+
+    it('does not skip rows sharing the boundary millisecond across pages', async () => {
+      for (const productId of [milkId, butterId, coffeeId]) {
+        await http(app)
+          .post(`${API}/favorites`)
+          .set('Authorization', session.auth)
+          .send({ productId })
+          .expect(201);
+      }
+      const listed = await http(app)
+        .get(`${API}/favorites`)
+        .set('Authorization', session.auth)
+        .expect(200);
+      const ids = listed.body.data.map((favorite: { id: string }) => favorite.id) as string[];
+      expect(ids).toHaveLength(3);
+
+      // Force all three onto the SAME millisecond, differing only in microsecond
+      // digits a JS Date cannot represent — unforceable through the API alone.
+      const db = app.get<Database>(DATABASE);
+      const sameMillisecond = [
+        '2026-01-02T03:04:05.123400Z',
+        '2026-01-02T03:04:05.123500Z',
+        '2026-01-02T03:04:05.123600Z',
+      ];
+      for (const [index, favoriteId] of ids.entries()) {
+        await db.execute(
+          sql`update favorites set created_at = ${sameMillisecond[index]}::timestamptz where id = ${favoriteId}::uuid`,
+        );
+      }
+
+      const seen: string[] = [];
+      let cursor: string | null = null;
+      for (let requests = 0; requests < 4; requests += 1) {
+        const query: Record<string, string> = { limit: '2' };
+        if (cursor) query.cursor = cursor;
+        const page = await http(app)
+          .get(`${API}/favorites`)
+          .query(query)
+          .set('Authorization', session.auth)
+          .expect(200);
+        seen.push(...page.body.data.map((favorite: { id: string }) => favorite.id));
+        cursor = page.body.pageInfo.nextCursor;
+        if (!cursor) break;
+      }
+
+      // Every row exactly once: the cursor key and the SQL predicate agree on
+      // microsecond precision, so the row one microsecond below the page boundary
+      // is not skipped.
+      expect([...seen].sort()).toEqual([...ids].sort());
     });
 
     it('deletes idempotently (204 whether present or not)', async () => {

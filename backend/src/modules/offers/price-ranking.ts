@@ -143,6 +143,10 @@ function unitPrice(candidate: OfferCandidate): number | null {
  * a market-wide offer survives only while at least one of its market's in-radius
  * stores has no store-specific offer of its own. A market with no store in radius at
  * all is unreachable, so its market-wide price is dropped too.
+ *
+ * Callers must pass stale-free candidates: a store whose only store-specific offers
+ * are stale (and thus dropped from the response) must not veto its market's
+ * market-wide price.
  */
 function suppressCoveredMarketWideOffers(
   candidates: OfferCandidate[],
@@ -173,12 +177,17 @@ export function rankOffers(candidates: OfferCandidate[], options: RankingOptions
   const { now, maxPriceAgeHours } = options;
 
   const valid = candidates.filter((candidate) => isWithinValidity(candidate, now));
-  const surviving = suppressCoveredMarketWideOffers(valid, options.storeIdsInRadiusByMarket);
+  // Freshness is classified BEFORE the suppression step: only fresh/aging
+  // store-specific offers may cover a store, so a fresh market-wide price is never
+  // suppressed by stale rows that are about to be dropped anyway.
+  const current = valid.filter(
+    (candidate) => classifyFreshness(candidate.observedAt, now, maxPriceAgeHours) !== 'stale',
+  );
+  const surviving = suppressCoveredMarketWideOffers(current, options.storeIdsInRadiusByMarket);
 
   const ranked: RankedOffer[] = [];
   for (const candidate of surviving) {
     const freshness = classifyFreshness(candidate.observedAt, now, maxPriceAgeHours);
-    if (freshness === 'stale') continue;
 
     const { effectiveAmountMinor, activePromotion } = applyPromotion(
       candidate.priceAmountMinor,

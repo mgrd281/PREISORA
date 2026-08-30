@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { hash as argonHash, verify as argonVerify } from '@node-rs/argon2';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, gt, isNull } from 'drizzle-orm';
 import type { AuthTokensDto } from '../../common/api/schemas';
 import { RequestContext } from '../../common/context/request-context';
 import { AppException } from '../../common/errors/app-exception';
@@ -135,24 +135,24 @@ export class AuthService {
     const tokenHash = TokenService.hashRefreshToken(refreshToken);
     const now = new Date();
 
+    // Revocation IS the guard: one atomic conditional UPDATE, so of two concurrent
+    // requests presenting the same token exactly one wins the row — no
+    // SELECT-then-UPDATE window in which both could redeem it.
     const [row] = await this.db
-      .select({
-        id: refreshTokens.id,
-        userId: refreshTokens.userId,
-        expiresAt: refreshTokens.expiresAt,
-      })
-      .from(refreshTokens)
-      .where(and(eq(refreshTokens.tokenHash, tokenHash), isNull(refreshTokens.revokedAt)))
-      .limit(1);
-
-    if (!row || row.expiresAt.getTime() <= now.getTime()) {
-      throw new AppException('UNAUTHORIZED', null, 'error.invalid_refresh_token');
-    }
-
-    await this.db
       .update(refreshTokens)
       .set({ revokedAt: now })
-      .where(eq(refreshTokens.id, row.id));
+      .where(
+        and(
+          eq(refreshTokens.tokenHash, tokenHash),
+          isNull(refreshTokens.revokedAt),
+          gt(refreshTokens.expiresAt, now),
+        ),
+      )
+      .returning({ userId: refreshTokens.userId });
+
+    if (!row) {
+      throw new AppException('UNAUTHORIZED', null, 'error.invalid_refresh_token');
+    }
 
     return this.issueTokens(row.userId);
   }

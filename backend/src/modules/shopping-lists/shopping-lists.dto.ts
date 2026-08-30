@@ -54,25 +54,29 @@ export class ShoppingListItemUpdateDto implements ShoppingListItemUpdateRequestD
   note?: string | null;
 }
 
-// `strategy` and `radiusMeters` carry contract defaults.
+// `strategy` and `radiusMeters` carry contract defaults. `lat`/`lng` are required by
+// the contract, but their ABSENCE is 400 LOCATION_REQUIRED (checked in the
+// controller), not VALIDATION_FAILED — so the pipe only validates them when present.
 export class OptimizeDto
-  implements WithOptionalDefaults<OptimizeRequestDto, 'strategy' | 'radiusMeters'>
+  implements WithOptionalDefaults<OptimizeRequestDto, 'strategy' | 'radiusMeters' | 'lat' | 'lng'>
 {
   @IsOptional()
   @IsIn(['cheapest_total', 'fewest_stores', 'balanced'])
   strategy?: 'cheapest_total' | 'fewest_stores' | 'balanced';
 
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(-90)
   @Max(90)
-  lat!: number;
+  lat?: number;
 
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(-180)
   @Max(180)
-  lng!: number;
+  lng?: number;
 
   @IsOptional()
   @Type(() => Number)

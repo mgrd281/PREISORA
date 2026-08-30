@@ -184,11 +184,20 @@ describe('optimizer and capabilities (e2e)', () => {
     expectErrorEnvelope(body, 'VALIDATION_FAILED');
   });
 
-  it('answers VALIDATION_FAILED when coordinates are missing from the body', async () => {
+  it('answers LOCATION_REQUIRED when coordinates are missing from the body', async () => {
     const { body } = await http(app)
       .post(`${API}/shopping-lists/${listId}/optimize`)
       .set('Authorization', session.auth)
       .send({ strategy: 'cheapest_total' })
+      .expect(400);
+    expectErrorEnvelope(body, 'LOCATION_REQUIRED');
+  });
+
+  it('answers VALIDATION_FAILED when a present coordinate is out of range', async () => {
+    const { body } = await http(app)
+      .post(`${API}/shopping-lists/${listId}/optimize`)
+      .set('Authorization', session.auth)
+      .send({ strategy: 'cheapest_total', lat: 123.45, lng: BERLIN.lng })
       .expect(400);
     expectErrorEnvelope(body, 'VALIDATION_FAILED');
   });

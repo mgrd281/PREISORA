@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "batches": [
+    {
+      "retailerName": "ALDI SÜD",
+      "retailerSlug": "aldi-sued",
+      "countryCode": "DE",
+      "currencyCode": "EUR",
+      "sourceUrl": "https://www.aldi-sued.de/de/angebote.html",
+      "harvestedAt": "2026-08-31",
+      "pricingScope": "market",
+      "offers": [
+        {
+          "name": "Plattnektarinen",
+          "quantityText": "500 g",
+          "priceMinor": 169,
+          "validFrom": "2026-08-31",
+          "validUntil": "2026-09-05"
+        },
+        {
+          "name": "Mandarinen",
+          "quantityText": "750 g",
+          "priceMinor": 149,
+          "oldPriceMinor": 179,
+          "validFrom": "2026-08-31",
+          "validUntil": "2026-09-05"
+        },
+        {
+          "name": "Nektarinen weißfleischig",
+          "quantityText": "600 g",
+          "priceMinor": 149,
+          "oldPriceMinor": 169,
+          "validFrom": "2026-08-31",
+          "validUntil": "2026-09-05"
+        },
+        {
+          "name": "Cocktailrispentomaten",
+          "quantityText": "500 g",
+          "priceMinor": 149,
+          "validFrom": "2026-08-31",
+          "validUntil": "2026-09-05"
+        },
+        {
+          "name": "Bio Trauben kernlos",
+          "quantityText": "500 g",
+          "priceMinor": 199,
+          "validFrom": "2026-08-31",
+          "validUntil": "2026-09-05"
+        },
+        {
+          "name": "Orangensaft",
+          "brand": "Valensina",
+          "quantityText": "1 l",
+          "priceMinor": 149,
+          "validFrom": "2026-08-31",
+          "validUntil": "2026-09-05"
+        },
+        {
+          "name": "Norwegisches Lachsfilet",
+          "quantityText": "300 g",
+          "priceMinor": 449,
+          "oldPriceMinor": 579,
+          "validFrom": "2026-08-31",
+          "validUntil": "2026-09-05"
+        },
+        {
+          "name": "Passionsfrucht",
+          "quantityText": "Stück",
+          "priceMinor": 77,
+          "oldPriceMinor": 99,
+          "validFrom": "2026-08-31",
+          "validUntil": "2026-09-05"
+        },
+        {
+          "name": "Speisekartoffeln",
+          "quantityText": "4 kg",
+          "priceMinor": 269,
+          "validFrom": "2026-08-31",
+          "validUntil": "2026-09-05"
+        },
+        {
+          "name": "Chipsfrisch Hot Honey",
+          "brand": "funny-frisch",
+          "quantityText": "130 g",
+          "priceMinor": 99,
+          "validFrom": "2026-09-04"
+        },
+        {
+          "name": "Leerdammer Original XXL",
+          "brand": "Leerdammer",
+          "quantityText": "360 g",
+          "priceMinor": 399,
+          "validFrom": "2026-09-04"
+        },
+        {
+          "name": "Ferrero B-ready",
+          "brand": "Ferrero",
+          "quantityText": "132 g",
+          "priceMinor": 189,
+          "validFrom": "2026-09-04"
+        },
+        {
+          "name": "Gut Drei Eichen Kochschinken",
+          "brand": "Gut Drei Eichen",
+          "quantityText": "250 g",
+          "priceMinor": 149,
+          "validFrom": "2026-09-04"
+        },
+        {
+          "name": "Lotus Biscoff Creamy XXL",
+          "brand": "Lotus",
+          "quantityText": "500 g",
+          "priceMinor": 329,
+          "validFrom": "2026-09-04"
+        },
+        {
+          "name": "Rio Mare Thunfischsalat Mexikanisch",
+          "brand": "Rio Mare",
+          "quantityText": "320 g",
+          "priceMinor": 349,
+          "validFrom": "2026-09-04"
+        },
+        {
+          "name": "Nordsee Backfisch",
+          "brand": "Nordsee",
+          "quantityText": "310 g",
+          "priceMinor": 379,
+          "validFrom": "2026-09-04"
+        },
+        {
+          "name": "Golden Seafood Garnelen Sortiment XXL",
+          "brand": "Golden Seafood",
+          "quantityText": "400 g",
+          "priceMinor": 599,
+          "validFrom": "2026-09-04"
+        },
+        {
+          "name": "Sheba Geflügel 32er-Pack",
+          "brand": "Sheba",
+          "quantityText": "2,72 kg",
+          "priceMinor": 1379,
+          "validFrom": "2026-09-04"
+        },
+        {
+          "name": "Küchenrollen 3-lagig",
+          "quantityText": "4x64 Blatt",
+          "priceMinor": 265,
+          "oldPriceMinor": 275,
+          "kind": "permanent_reduction"
+        },
+        {
+          "name": "Rio d'Oro Orangennektar",
+          "brand": "Rio d'Oro",
+          "quantityText": "1,5 l",
+          "priceMinor": 139,
+          "oldPriceMinor": 169,
+          "kind": "permanent_reduction"
+        },
+        {
+          "name": "Farmer Macadamia gesalzen",
+          "brand": "Farmer",
+          "quantityText": "125 g",
+          "priceMinor": 299,
+          "oldPriceMinor": 349,
+          "kind": "permanent_reduction"
+        },
+        {
+          "name": "Farmer Naturals Walnusskerne",
+          "brand": "Farmer",
+          "quantityText": "200 g",
+          "priceMinor": 249,
+          "oldPriceMinor": 299,
+          "kind": "permanent_reduction"
+        },
+        {
+          "name": "Farmer Naturals Paranusskerne",
+          "brand": "Farmer",
+          "quantityText": "200 g",
+          "priceMinor": 319,
+          "oldPriceMinor": 429,
+          "kind": "permanent_reduction"
+        }
+      ]
+    }
+  ]
+}

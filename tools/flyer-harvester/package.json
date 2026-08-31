@@ -1,0 +1,7 @@
+{
+  "name": "@preisora/flyer-harvester",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Assembles backend/data/flyer-imports/*.json from offer rows read off retailers' own public pages, then runs the backend importer. See README.md.",
+  "type": "module"
+}
